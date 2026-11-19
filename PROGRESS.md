@@ -10,6 +10,7 @@ Autonomous run of Phases 0–3. Updated after each task. A new session resumes f
 - Dry run of every pipeline step on the partial corpus succeeded. Qwen (digest pinned, ~3 s/sentence) and NLI (MPS, ~0.5 s/pair) smoke-tested.
 - UD EWT passive component check: clausal participles P 0.92 / R 0.80 / F1 0.85 (D-41). PolNeAR skipped (no license, D-42).
 - Annotator instructions (eval/annotation/instructions.md) and merge tool (eval/merge_labels.py).
+- Coverage rules (D-45): outlet comparisons in the common window, per-outlet trends, Bill 212 pre/post (cutoff 2024-11-25, D-47) only for outlets on both sides, coverage-by-quarter table. Wayback distinction logged (D-46). docs/writeup.md skeleton with coverage, methods and limitations sections.
 
 ## Outlets
 - Collected: CityNews Toronto, CTV News Toronto (sitemaps start 2025; 2023-24 daily sitemaps are empty), Global News (national; Toronto filter applies).
@@ -34,7 +35,7 @@ Autonomous run of Phases 0–3. Updated after each task. A new session resumes f
 2. `./run_pipeline.sh --eval-sample` (~7 h, ~16:00): sentences + trf parse, crash filter, dedupe, overlap, coref, NLI and Qwen on pools (Qwen ~3 s/sentence is most of it).
 3. Annotator subagents (~1 h, ~17:00): codebook.md + packets only → eval/dev_crash.csv, eval/test_crash.csv, eval/test_crash_annotator2.csv (30 rows).
 4. `./run_pipeline.sh` (~1 h, ~18:00): tune on dev, Snorkel, SetFit, article labels, scoring, aggregates.
-5. docs/writeup.md, comparison with docs/related-work.md, SUMMARY.md (~1.5 h, ~19:30).
+5. Fill docs/writeup.md TODOs (coverage table first, then results, evaluation, prior-study comparison, limitations), SUMMARY.md (~1.5 h, ~19:30).
 
 ## Blockers
 - None.
