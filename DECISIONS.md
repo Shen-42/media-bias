@@ -44,3 +44,13 @@ Judgment calls made in autonomous mode. Each entry gives the date, the decision,
 | D-26 | `vru_conduct_detail` and `thematic_cue` evaluation uses a second sample of body sentences from crash articles (`set = context`), alongside the crash-sentence sample (`set = crash`). | Evaluate on crash sentences only | Both labels mostly occur outside crash sentences (D-10, D-13). |
 | D-27 | The Streamlit app is not deployed; it runs locally in "public" mode (aggregates + one excerpt per article) and "local" mode (full viewer). | Deploy to Streamlit Cloud | Hosting needs an account; the author ruled out services needing a human action. |
 | D-28 | `da-roberta-babe-ft` not used in v1. | Add as a feature | PLAN.md lists it as a v1.5 stance baseline only. |
+
+## Collection and rules (2026-11-19)
+
+| ID | Decision | Alternatives | Reason |
+|---|---|---|---|
+| D-29 | Quote detection uses spaCy + regex; the Gender Gap Tracker extractor is not used. | Port the GGT code | GGT targets speaker attribution with stale dependencies; v1 only needs direct-quote spans and an attribution flag. Simpler and fully tested. |
+| D-30 | Bike lane and transit URLs are discovered and stored but not fetched in v1. | Fetch their raw text in the same crawl | The author allowed but did not require it; fetching ~1,200 extra CityNews pages at 10 s each would add hours with no v1 use. |
+| D-31 | "hit-and-run" counts as a collision noun for the crash-sentence filter. | Leave it out | "Police are investigating a hit-and-run involving a cyclist" describes the collision; excluding it would drop a common crash-sentence form. |
+| D-32 | Fetch order: URLs whose slug names a VRU or a strike verb first; slugs matched only by "crash"/"collision" after, as time allows. | Fetch in date order | CityNews requires a 10 s delay; 4,700 candidates would take 13 h. Most crash-only slugs are car-only or highway crashes, which are out of scope. Tier-2 coverage is reported. |
+| D-33 | CBC excluded: robots.txt unreachable from this network on three attempts, treated as "do not crawl". | Crawl without robots.txt | CLAUDE.md requires respecting robots.txt; an unreadable robots.txt gives no permission. |

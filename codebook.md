@@ -11,7 +11,7 @@ Labels follow the five dimensions shared across the crash-reporting literature: 
 - **In-scope crash:** a motor vehicle (car, SUV, truck, van, bus, TTC bus, streetcar, motorcycle) struck at least one pedestrian or cyclist. Fatal or non-fatal. Car-only crashes are out. A cyclist striking a pedestrian is out (D-01).
 - **VRU:** vulnerable road user. Pedestrians include wheelchair and mobility-device users. Cyclists include e-bike and e-scooter riders. Motorcyclists are not VRUs (D-01).
 - **Impact verbs** (lemmas): hit, strike, run over, collide, crash (into), knock down, mow down, pin, drag, clip, door, back into, plow into, slam into, ram (D-02).
-- **Collision nouns:** crash, collision, accident (D-03).
+- **Collision nouns:** crash, collision, accident, hit-and-run (D-03, D-31).
 - **Impact clause:** the clause whose main predicate is the first impact verb in sentence order. If the sentence has no impact verb, the main clause.
 - Headlines and body sentences get the same labels and are scored separately.
 
@@ -262,4 +262,5 @@ Values: `initial`, `follow_up`, `roundup`. Primary analysis uses `initial`; `fol
 
 ## 6. Change log
 
+- v1.0 (2026-11-19): "hit-and-run" added as a collision noun (D-31).
 - v1.0 (2026-11-19): resolved all draft flags (D-01 to D-17); added "accident" as a collision noun, the `vru_sentence` unit, `thematic_cue`, `attributed`, `driver_hta_charge`; extended the impact verb list.
