@@ -14,8 +14,13 @@ def _tok(doc, word):
 
 
 def test_conj_shares_passive_aux(nlp):
-    doc = nlp("The cyclist was struck and dragged for a block.")
-    assert is_passive(_tok(doc, "dragged"), False)
+    doc = nlp("The woman was struck and pinned under the bus.")
+    assert is_passive(_tok(doc, "pinned"), False)
+
+
+def test_intransitive_conj_is_not_passive(nlp):
+    doc = nlp("The cyclist was struck and died in hospital.")
+    assert not is_passive(_tok(doc, "died"), False)
 
 
 def test_conj_with_own_subject_is_not_passive(nlp):
