@@ -41,7 +41,10 @@ LABELS = {
 
 def table(name: str) -> pd.DataFrame:
     p = TABLES / f"{name}.csv"
-    return pd.read_csv(p) if p.exists() else pd.DataFrame()
+    try:
+        return pd.read_csv(p)
+    except (FileNotFoundError, pd.errors.EmptyDataError):  # missing or empty table
+        return pd.DataFrame()
 
 
 def ci_chart(df: pd.DataFrame, group: str, measures: list[str]) -> alt.Chart:
@@ -65,6 +68,22 @@ def ci_chart(df: pd.DataFrame, group: str, measures: list[str]) -> alt.Chart:
     )
     bars = base.mark_rule().encode(x="ci_lo:Q", x2="ci_hi:Q")
     return (bars + points).properties(height=90).facet(row=alt.Row("measure:N", title=None))
+
+
+def breakdown(name: str) -> None:
+    """Per-outlet breakdown and outlet shares for a pooled table (D-48)."""
+    shares = table("pooled_sample_shares")
+    if not shares.empty:
+        s = shares[shares["table"] == name]
+        if not s.empty:
+            top = s.loc[s["share_units"].idxmax()]
+            st.caption(
+                f"Pooled across outlets. Largest contributor: {top['outlet']} "
+                f"({top['share_units']:.0%} of the sample)."
+            )
+    with st.expander("Per-outlet breakdown of this pooled sample"):
+        st.dataframe(table(f"{name}_by_outlet"), use_container_width=True)
+        st.dataframe(shares[shares["table"] == name] if not shares.empty else shares)
 
 
 st.set_page_config(page_title="Toronto crash framing", layout="wide")
@@ -92,6 +111,7 @@ with tab[0]:
                 ["driver_hidden", "voice_agentless_passive", "driver_ref_vehicle", "accident_term"],
             )
         )
+    breakdown("overall_by_text_source")
     st.subheader("Headlines vs. body (reporter text)")
     d = table("headline_vs_body")
     if not d.empty:
@@ -102,6 +122,7 @@ with tab[0]:
                 ["driver_hidden", "voice_agentless_passive", "voice_nominal", "focus_vru"],
             )
         )
+    breakdown("headline_vs_body")
     st.subheader("Is the driver ever mentioned? Split by exceptional driver behaviour")
     d = table("driver_mentioned_by_exceptional")
     if not d.empty:
@@ -110,6 +131,7 @@ with tab[0]:
                 d, "exceptional", ["driver_ever_mentioned", "driver_ever_mentioned_with_quotes"]
             )
         )
+    breakdown("driver_mentioned_by_exceptional")
 
 with tab[1]:
     w = table("comparison_window")

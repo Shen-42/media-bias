@@ -167,6 +167,23 @@ def coverage_by_quarter(arts: pd.DataFrame) -> pd.DataFrame:
     return wide.astype(int).reset_index()
 
 
+def pooled_shares(samples: dict[str, pd.DataFrame]) -> pd.DataFrame:
+    """Each outlet's share of every pooled sample, with the largest contributor flagged."""
+    rows = []
+    for name, df in samples.items():
+        if df.empty:
+            continue
+        g = df.groupby("outlet").agg(
+            units=("article_id", "size"), articles=("article_id", "nunique")
+        )
+        g["share_units"] = g["units"] / g["units"].sum()
+        g["share_articles"] = g["articles"] / g["articles"].sum()
+        g["largest"] = g["share_units"].eq(g["share_units"].max())
+        rows.append(g.reset_index().assign(table=name))
+    cols = ["table", "outlet", "units", "articles", "share_units", "share_articles", "largest"]
+    return pd.concat(rows)[cols] if rows else pd.DataFrame(columns=cols)
+
+
 def build_tables(
     arts: pd.DataFrame, sents: pd.DataFrame, bill212: str = "2024-11-25"
 ) -> dict[str, pd.DataFrame]:
@@ -176,10 +193,6 @@ def build_tables(
     reporter = canon_body[canon_body["text_source"] != "quoted"]
     a_init = arts[(arts["article_type"] == "initial")]
     t = {}
-    t["overall_by_text_source"] = rates(canon_body, ["text_source"], SENT_MEASURES)
-    t["headline_vs_body"] = rates(
-        pd.concat([init[init["part"] == "headline"], reporter]), ["part"], SENT_MEASURES
-    )
     # Per outlet: includes wire stories each outlet ran; reported with and without wire (Q17).
     body_all = init[(init["part"] == "body") & (init["text_source"] != "quoted")]
     # Outlet comparisons: only the window all outlets cover (D-45).
@@ -195,22 +208,38 @@ def build_tables(
     t["bill212_pre_post_by_outlet"] = (
         rates(pp, ["outlet", "period"], SENT_MEASURES) if not pp.empty else pd.DataFrame()
     )
-    t["fatal_vs_nonfatal"] = rates(reporter, ["fatal"], SENT_MEASURES)
     fu = sents[
         (sents["part"] == "body")
         & (sents["is_canonical"] == 1)
         & (sents["text_source"] != "quoted")
         & sents["article_type"].isin(["initial", "follow_up"])
     ]
-    t["initial_vs_follow_up"] = rates(fu, ["article_type"], SENT_MEASURES)
     a_init = a_init.assign(
         exceptional=a_init["driver_exceptional"].map({1.0: "exceptional", 0.0: "ordinary"})
     )
-    t["driver_mentioned_by_exceptional"] = rates(
-        a_init, ["exceptional"], ["driver_ever_mentioned", "driver_ever_mentioned_with_quotes"]
-    )
     t["articles_by_outlet"] = rates(in_window(a_init, window), ["outlet"], ART_MEASURES)
-    t["articles_overall"] = rates(a_init, [], ART_MEASURES)
+    # Pooled tables mix outlets over the full window. Each gets a per-outlet breakdown of the
+    # same sample (a decomposition, not an outlet comparison) and each outlet's share (D-48).
+    pooled = {
+        "overall_by_text_source": (canon_body, ["text_source"], SENT_MEASURES),
+        "headline_vs_body": (
+            pd.concat([init[init["part"] == "headline"], reporter]),
+            ["part"],
+            SENT_MEASURES,
+        ),
+        "fatal_vs_nonfatal": (reporter, ["fatal"], SENT_MEASURES),
+        "initial_vs_follow_up": (fu, ["article_type"], SENT_MEASURES),
+        "driver_mentioned_by_exceptional": (
+            a_init,
+            ["exceptional"],
+            ["driver_ever_mentioned", "driver_ever_mentioned_with_quotes"],
+        ),
+        "articles_overall": (a_init, [], ART_MEASURES),
+    }
+    for name, (df, by, measures) in pooled.items():
+        t[name] = rates(df, by, measures)
+        t[f"{name}_by_outlet"] = rates(df, ["outlet", *by], measures)
+    t["pooled_sample_shares"] = pooled_shares({n: v[0] for n, v in pooled.items()})
     linked = in_window(a_init[a_init["linked"]], window)
     t["police_overlap_by_outlet"] = (
         linked.groupby("outlet")["police_overlap"].agg(["mean", "median", "count"]).reset_index()

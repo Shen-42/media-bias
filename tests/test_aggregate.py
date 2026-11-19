@@ -54,3 +54,13 @@ def test_coverage_by_quarter():
     )
     cov = coverage_by_quarter(arts).set_index("quarter")
     assert cov.loc["2025Q1", "a"] == 2 and cov.loc["2025Q2", "b"] == 1
+
+
+def test_pooled_shares_flags_largest_outlet():
+    from analysis.aggregate import pooled_shares
+
+    df = pd.DataFrame({"article_id": ["1", "1", "2", "3"], "outlet": ["a", "a", "a", "b"]})
+    s = pooled_shares({"x": df}).set_index("outlet")
+    assert s.loc["a", "units"] == 3 and s.loc["a", "articles"] == 2
+    assert s.loc["a", "share_units"] == 0.75 and bool(s.loc["a", "largest"])
+    assert not bool(s.loc["b", "largest"])

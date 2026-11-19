@@ -12,6 +12,10 @@ TODO: coverage table.
 
 TODO.
 
+Pooled tables (text source, headline vs body, fatal vs non-fatal, initial vs follow-up, exceptional vs ordinary driver, article-level rates) combine all outlets over the full window. Each is shown next to its per-outlet breakdown (`*_by_outlet.csv`). For each one, state which outlet contributes most of the pooled sample (`pooled_sample_shares.csv`), since a pooled rate leans toward that outlet's rate. The breakdowns decompose the pooled sample; they are not outlet comparisons, which use the common window (D-45).
+
+TODO: per pooled table, largest contributor and its share.
+
 ## Methods
 
 See `docs/method.md` for the full method. Points that affect how to read the results:
