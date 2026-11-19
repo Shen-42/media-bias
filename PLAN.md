@@ -38,11 +38,11 @@ These dates give an event timeline for the bike lane analysis (v1.5). Verify eac
 |---|---|---|
 | Q1 | Audience: portfolio, course/research paper, or public tool? | **Answered:** portfolio piece with a short write-up |
 | Q2 | v1 topic scope | **Answered:** crashes only. Discovery may collect `bike_lane` and `transit` URLs and raw text in the same crawl. They are tagged but not processed in v1 |
-| Q3 | Outlets; access to paywalled Star and Globe text | **Answered:** CBC Toronto, CityNews, CTV Toronto, Global, Toronto Sun, blogTO, Toronto Today. Star and Globe deferred. Flag any outlet whose coverage or robots.txt fails the Phase 0 check |
+| Q3 | Outlets; access to paywalled Star and Globe text | **Answered:** CBC Toronto, CityNews, CTV Toronto, Global, Toronto Sun, blogTO, Toronto Today, minus any that fail the Phase 0 check. Star and Globe deferred. Phase 0 result: the Toronto Sun is excluded (Postmedia terms prohibit scraping); blogTO and Toronto Today are excluded (they block scripted access, and the block is not circumvented). See `DECISIONS.md` and `docs/sources.md` |
 | Q4 | Time window | **Answered:** 2023-01-01 to 2026-10-31 (about two years before Bill 212) |
-| Q5 | Data source | **Answered:** Media Cloud for URL discovery (free research data source; approved), trafilatura for text. The author works from Shanghai, so Media Cloud and outlet sites may need a VPN |
+| Q5 | Data source | **Answered:** outlet sitemaps and RSS for URL discovery, plus GDELT where it covers the window; trafilatura for text. No services that need an account (Media Cloud dropped). Police releases from the Wayback Machine only |
 | Q6 | Definition of bike lane/transit "bias" (v1.5) | Default: source counts + policy frames, not a single pro/anti score |
-| Q7 | Hand-labeling budget | **Answered:** training labels are automated (Section 9). No hand-labeled training data anywhere. Hand-label a test set (~100 sentences), a dev set (~30 sentences, including `text_source`), and re-label 30 test sentences: about 160 labeling passes |
+| Q7 | Labeling budget | **Answered:** training labels are automated (Section 9). No hand-labeled training data anywhere. Test (~100 sentences) and dev (~30 sentences, including `text_source`) labels come from a Claude Code subagent acting as an independent annotator, given only `codebook.md` and raw sentences. A second independent annotator labels 30 test sentences for Cohen's kappa. These are LLM labels, not human labels, and every report says so |
 | Q8 | LLM API use and budget | **Answered:** no LLM APIs. Open models run locally only. A local Qwen model via Ollama is allowed as one weak labeler |
 | Q9 | Output form | **Answered:** Streamlit dashboard + short write-up. The full-text article viewer runs locally only. The deployed app shows aggregate rates and at most one flagged sentence per article as an excerpt |
 | Q10 | Which crashes are in scope? | **Answered:** crashes where at least one pedestrian or cyclist was involved, fatal and non-fatal, any striking vehicle (car, truck, TTC bus, streetcar). Car-only crashes are out. Tag severity so fatal-only results can be split out |
@@ -63,8 +63,9 @@ These dates give an event timeline for the bike lane analysis (v1.5). Verify eac
 - English-language outlets only.
 - Headlines and body text are scored separately.
 - No LLM APIs. Every model is a public, openly licensed checkpoint that runs locally. The pipeline is fully reproducible with no API cost.
-- Local LLM: an Apache-2.0 Qwen instruct model served by Ollama on the laptop. Default `qwen3:8b` (fits in 16 GB unified memory at 4-bit). Use a larger, newer Qwen only if memory allows. Verify the current tag on ollama.com and pin the exact tag and digest.
-- Compute: inference and SetFit run on a laptop CPU or Apple Silicon (MPS). DeBERTa-v3-base fine-tunes locally; DeBERTa-v3-large uses a free Colab GPU if needed.
+- Local LLM: an Apache-2.0 Qwen model served by Ollama on the laptop: `qwen3:4b`, with the exact tag and digest pinned.
+- Compute: an Apple M2 with 8 GB RAM. One model in memory at a time; every model output is cached to disk. Zero-shot NLI uses `deberta-v3-base-zeroshot-v2.0`. The trained end model is SetFit on a small sentence-transformer (`all-MiniLM-L6-v2`). No DeBERTa fine-tuning and no Colab.
+- Work runs in autonomous mode: judgment calls are logged in `DECISIONS.md` and status in `PROGRESS.md`.
 - Article text stays local and is not redistributed (copyright). The repo publishes code, labels, and aggregate statistics, not article bodies.
 
 ## 5. Scope
@@ -75,7 +76,7 @@ These dates give an event timeline for the bike lane analysis (v1.5). Verify eac
 - Sentence-level crash framing labels (Section 7).
 - Quote detection so police and official quotes are scored separately from reporter text.
 - Article-to-press-release overlap score.
-- Rule-based grammatical labels; automated training labels (Snorkel) for the two fuzzy labels; evaluation against a small hand-labeled test set.
+- Rule-based grammatical labels; automated training labels (Snorkel) for the two fuzzy labels; evaluation against a small test set labeled by an annotator subagent.
 - Outlet and time comparisons, headline vs. body comparison, newsroom vs. police comparison.
 - Streamlit dashboard with aggregate rates and at most one flagged sentence per article as an excerpt.
 - Local-only article viewer that highlights flagged sentences and shows which ones match the police release. Never deployed.
@@ -95,8 +96,8 @@ These dates give an event timeline for the bike lane analysis (v1.5). Verify eac
 
 ## 6. Data pipeline
 
-1. **URL discovery.** Media Cloud (or GDELT) queries by outlet, date range, and keywords ("pedestrian", "cyclist", "struck", "collision", "crash", "hit-and-run", "bike lane", "TTC funding", "Bill 212"). Bike lane and transit articles are collected and stored in the same crawl but not processed in v1.
-2. **Police news releases.** Collect Toronto Police Service news releases on collisions for the same window. These are the upstream source for most crash coverage.
+1. **URL discovery.** Outlet sitemaps and RSS (GDELT where it covers the window), filtered by outlet, date range, and keywords ("pedestrian", "cyclist", "struck", "collision", "crash", "hit-and-run", "bike lane", "TTC funding", "Bill 212"). Bike lane and transit articles are collected and stored in the same crawl but not processed in v1.
+2. **Police news releases.** Collect Toronto Police Service news releases on collisions for the same window from the Wayback Machine only. The TPS site blocks scripted access, and about 42% of release IDs in the window are archived (72% in 2023, 25–35% after). The police comparison is therefore a **secondary analysis on the matched subset**. It includes a bias check that compares articles with and without an archived release (outlet, year, severity, road users, headline framing rates).
 3. **Fetch and extract.** trafilatura for body text. Store raw HTML locally, gitignored. Record the fetch timestamp, since articles get edited.
 4. **Topic tagging.** Keyword filter first, then a small classifier only if precision is poor. Tags: `crash`, `bike_lane`, `transit`.
 5. **Crash metadata.** Severity (fatal / injury / no injury / unknown), road users (pedestrian, cyclist, driver, transit vehicle), hit-and-run flag, `article_type` (`initial`, `follow_up`, `roundup`). Articles without a pedestrian or cyclist are dropped from the crash set.
@@ -164,10 +165,10 @@ Write `codebook.md` with two or more real Toronto examples per label before labe
 
 ### 8.1 Crash framing
 - **Primary: spaCy dependency rules.** Voice, focus, and metonymy are grammatical, so rules are precise and explainable. Patterns: `nsubjpass` + `agent`; vehicle noun (car, SUV, truck, vehicle, van, streetcar, bus, TTC bus) as `nsubj` of hit/strike/strike down/run over/collide; VRU as `nsubj` of "collide with" or head of "in collision with". A rule-based crash-report extraction system from ORNL outperformed GPT-4o on subject–action–object extraction, which supports this choice.
-- **Coreference: fastcoref** (spaCy component; LingMess mode for accuracy) to link "the driver", "he", and "a 34-year-old man" for `driver_ever_mentioned`. If the LingMess checkpoint's license is unclear, use the default FCoref model.
+- **Coreference: fastcoref** with the default FCoref model (LingMess fails on current transformers; see `DECISIONS.md`) to link "the driver", "he", and "a 34-year-old man" for `driver_ever_mentioned`. If the LingMess checkpoint's license is unclear, use the default FCoref model.
 - **Grammatical labels (`voice`, `driver_reference`, `focus`, `vru_as_actor`, `accident_term`):** the rules are the reported system. They also serve as labeling functions, but no trained model is built for these labels.
-- **Fuzzy labels (`vru_conduct_detail`, `thematic_frame`):** the only labels that get Snorkel + a trained model. SetFit or DeBERTa-v3 trained on Snorkel's probabilistic labels (Section 9). No hand-labeled training data.
-- **Baseline:** zero-shot NLI classifier `MoritzLaurer/deberta-v3-large-zeroshot-v2.0` (435M params, MIT license) on the same test set. Each label is written as a hypothesis, e.g. "This sentence says a driver caused the crash." `facebook/bart-large-mnli` is an older, weaker fallback.
+- **Fuzzy labels (`vru_conduct_detail`, `thematic_frame`):** the only labels that get Snorkel + a trained model: SetFit on `all-MiniLM-L6-v2`, trained on Snorkel's labels (Section 9). No hand-labeled training data.
+- **Baseline:** zero-shot NLI classifier `MoritzLaurer/deberta-v3-base-zeroshot-v2.0` (MIT license) on the same test set. Each label is written as a hypothesis, e.g. "This sentence says a driver caused the crash." `facebook/bart-large-mnli` is an older, weaker fallback.
 
 ### 8.2 Police release overlap
 - Sentence embeddings (`sentence-transformers/all-mpnet-base-v2`) plus character n-gram overlap to find article sentences copied or lightly edited from the police release.
@@ -203,12 +204,12 @@ Labeling functions:
 | spaCy dependency rules | `voice`, `driver_reference`, `focus`, `vru_as_actor` |
 | Lexicons ("accident"; helmet, dark clothing, headphones, mid-block, jaywalk) | `accident_term`, `vru_conduct_detail` |
 | Thematic cue lexicon (statistics, "this year", road design, Vision Zero, experts) | `thematic_frame` |
-| Zero-shot NLI (`deberta-v3-large-zeroshot-v2.0`) | all labels, as hypotheses |
+| Zero-shot NLI (`deberta-v3-base-zeroshot-v2.0`) | all labels, as hypotheses |
 | Qwen via Ollama, few-shot prompt built from `codebook.md` examples | all labels |
 
 `text_source` is not a labeling target; it is derived deterministically (Section 7).
 
-The end models (SetFit, DeBERTa-v3) train on Snorkel's probabilistic labels for `vru_conduct_detail` and `thematic_frame` only. Following Anno-lexical, check that the trained model beats each individual labeling function on the test set; if it does not, the extra step adds nothing.
+The end model (SetFit on `all-MiniLM-L6-v2`) trains on Snorkel's labels for `vru_conduct_detail` and `thematic_frame` only. Following Anno-lexical, check that the trained model beats each individual labeling function on the test set; if it does not, the extra step adds nothing.
 
 ### 9.2 Qwen as a labeler
 
@@ -246,15 +247,15 @@ Run rules, NLI, and Qwen on every crash sentence. Where all agree, the label is 
 
 ## 10. Evaluation
 
-- Test set: about 100 hand-labeled crash-describing sentences.
+- Test set: about 100 crash-describing sentences, labeled by an independent annotator subagent (an LLM, not a human) that sees only `codebook.md` and the raw sentences.
   - 60 sampled at random, stratified by outlet and year. **Headline metrics come from this part only**, since it represents the corpus.
   - 40 sampled from triage disagreements. Used for error analysis, reported separately, never pooled into headline metrics.
-- Label 30 of them twice, at least a week apart. Report agreement (Cohen's kappa).
+- A second independent annotator subagent labels 30 of them. Report agreement (Cohen's kappa). Agreement between two LLM annotators is not the same as human agreement; say so.
 - Metrics: per-label precision, recall, F1; confusion matrix; macro-F1. Rare labels (e.g. `vru_as_actor`) will have wide intervals with this sample size; say so.
 - Report each labeling function, Snorkel's label model, and the trained end model on the same test set (for the grammatical labels, the rules are the reported system).
 - Dev set: about 30 sentences, labeled for all sentence labels plus `text_source` so the release-match threshold can be tuned.
 - The test/dev sampler skips every ID in `eval/excluded_ids.txt` (codebook and prompt examples). A unit test enforces this.
-- Total hand labeling: about 160 passes (test, dev, and 30 re-labels).
+- Total annotator labeling: about 160 sentence passes (test, dev, and 30 second-annotator labels).
 - Error analysis: read every error in the disagreement sample and categorize causes.
 - Hold out the test set. Never tune rules, prompts, or thresholds on it. Use a separate small dev set (about 30 sentences) for tuning.
 - Outlet comparisons: report rates with confidence intervals (bootstrap over articles). Do not rank outlets on differences inside the intervals.
@@ -271,7 +272,7 @@ That tool gives each article a letter grade. A road.cc reader reported it gave a
 - Repo skeleton (GitHub, GitHub Actions CI), environment, CLAUDE.md, codebook.md.
 - Check robots.txt and terms for each outlet; flag any that fail.
 - Read Ralph et al. 2019, Goddard et al. 2019, Fevyer & Aldred 2022, Reymond & Rérat, and the Road Collision Reporting Guidelines. Note each one's labels in `docs/related-work.md`.
-- Contact the Bike Frames authors about their code and data release. Bike Frames stays in related work only; it is not an evaluation set.
+- Bike Frames stays in related work only; it is not an evaluation set. (The author contact was dropped in autonomous mode.)
 - Deliverable: codebook with Toronto examples; `eval/excluded_ids.txt`; empty pipeline that runs end to end on 5 articles.
 
 ### Phase 1: Corpus (weeks 2–3)
@@ -284,7 +285,7 @@ That tool gives each article a letter grade. A road.cc reader reported it gave a
 - Template test suite in CI; component checks on UD and PolNeAR.
 - Labeling functions + Snorkel label model; Qwen labeler via Ollama; triage queue.
 - Train SetFit/DeBERTa on Snorkel labels for `vru_conduct_detail` and `thematic_frame` only.
-- Hand-label the 100-sentence test set and 30-sentence dev set; evaluate every labeling function, the label model, and the end model.
+- Annotator subagents label the 100-sentence test set and 30-sentence dev set; evaluate every labeling function, the label model, and the end model.
 - Deliverable: `nlp/` labeler, eval report with component metrics, end-to-end metrics, and error analysis.
 
 ### Phase 3: Analysis and front end (weeks 6–7)
@@ -292,7 +293,7 @@ That tool gives each article a letter grade. A road.cc reader reported it gave a
 - Comparison with rates from prior studies.
 - Streamlit dashboard with aggregate rates and at most one flagged sentence per article as an excerpt.
 - Local-only article viewer with per-sentence labels and release matches.
-- Deliverable: deployed dashboard; write-up that states the key result in its first paragraph.
+- Deliverable: dashboard that is ready to deploy (hosting needs an account, so it runs locally in autonomous mode); write-up that states the key result in its first paragraph; SUMMARY.md.
 
 **v1 = Phases 0–3.**
 
@@ -328,19 +329,20 @@ media-bias/
 | Too few crash articles per outlet | Include non-fatal crashes; widen the date window; pool by outlet type |
 | Police release language dominates | Release matching; report newsroom and police-matched text separately |
 | Some articles have no linkable police release | Report the matched share; analyze unmatched articles as their own group |
+| Wayback coverage of TPS releases is partial and may not be random | Police comparison is secondary, on the matched subset only; bias check compares matched and unmatched articles |
 | Wire copy inflates counts | Dedupe before any aggregation |
 | Author's own view shapes labels | Written codebook from published instruments, random sampling, double-labeling subset |
 | Hit-and-run stories inflate "driver mentioned" rates | `driver_exceptional` flag; report split |
 | Follow-up stories (charges laid) inflate exceptional-driver counts | `crash_id` and `article_type`; primary analysis on initial reports |
-| Media Cloud or outlet sites unreachable from Shanghai | VPN; GDELT as fallback for URL discovery |
+| Outlet sites or archives unreachable or slow from the author's network | Sitemaps first, GDELT as fallback; exclude unreachable outlets and log it |
 | Gender Gap Tracker code is stale | spaCy + regex fallback |
 | Zero-shot NLI misses implicit framing | Add or fix labeling functions; retrain on Snorkel labels; add source-role counts |
-| Labeling functions share blind spots, so Snorkel is confidently wrong | Diverse function types (syntax, lexicon, NLI, LLM); hand-labeled test set measures it |
+| Labeling functions share blind spots, so Snorkel is confidently wrong | Diverse function types (syntax, lexicon, NLI, LLM); the annotator-labeled test set measures it |
 | Qwen output drifts or breaks format | Pinned digest, temperature 0, JSON schema, cache; invalid output counts as abstain |
 | Qwen too slow on a laptop for the full corpus | Run only on crash sentences (thousands, not millions); batch overnight; smaller Qwen if needed |
 | Template suite passes but real text fails | Templates are unit tests only; real accuracy comes from the test set |
 | 100-sentence test set too small for rare labels | Report intervals; extend the test set for rare labels if they drive a finding |
-| No GPU for large models | DeBERTa-v3-base locally; free Colab GPU for large |
+| No GPU and 8 GB RAM | Base-size NLI, small SetFit model, one model in memory at a time, cached outputs |
 
 ## 14. Related work
 
@@ -363,7 +365,7 @@ This project automates the sentence-level coding these studies did by hand, whic
 
 **Automated tools.**
 - Zhao et al., "Bike Frames" (ICWSM 2025): 31,480 US headlines, 1,500 annotations; LLM chain-of-code for accident detection, fault, and cyclist perception. Headlines only, uses an LLM, US only. This project uses full text, open local models, and Canadian outlets. Bike Frames is not used as an evaluation set here, because its unit (headline), labels, and country differ. Their finding that outlet information improves prediction suggests outlet-level differences are real and worth reporting.
-- Vision Zero Reporting (Lang, 2021): pastes in an article and returns a letter grade on six problems, built on Ralph et al. Method and code are not public. This project publishes its method, reports per-sentence evidence instead of grades, and evaluates against a hand-labeled test set.
+- Vision Zero Reporting (Lang, 2021): pastes in an article and returns a letter grade on six problems, built on Ralph et al. Method and code are not public. This project publishes its method, reports per-sentence evidence instead of grades, and evaluates against a labeled test set.
 
 **Quote extraction.**
 - Asr et al. (2021), Gender Gap Tracker, *PLoS ONE*: quote and speaker extraction on seven Canadian English outlets. Reused here for quote stripping and source counts.
@@ -384,4 +386,4 @@ This project automates the sentence-level coding these studies did by hand, whic
 - Ribeiro et al. (2020), CheckList: template-based behavioral tests. Basis for the template suite.
 - Newell et al. (2018), PolNeAR; Universal Dependencies English treebanks: public component checks.
 
-**Models and tools.** spaCy, fastcoref, sentence-transformers, Snorkel, Ollama + Qwen, SetFit, DeBERTa-v3, ModernBERT, Laurer et al. zeroshot-v2.0 NLI classifiers (arXiv:2312.17543), trafilatura, Media Cloud.
+**Models and tools.** spaCy, fastcoref, sentence-transformers, Snorkel, Ollama + Qwen, SetFit, Laurer et al. zeroshot-v2.0 NLI classifiers (arXiv:2312.17543), trafilatura, GDELT, Wayback Machine.

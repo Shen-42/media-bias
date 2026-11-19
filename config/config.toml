@@ -1,0 +1,80 @@
+# Pipeline configuration. Model names and revisions are pinned for reproducibility.
+# Thresholds marked "dev-tuned" are set only from eval/dev_crash.csv.
+
+[corpus]
+start = "2023-01-01"
+end = "2026-10-31"
+db = "data/corpus.sqlite"
+raw_dir = "data/raw"
+cache_dir = "data/cache"
+
+[fetch]
+user_agent = "media-bias-research/0.1 (non-commercial academic crawler)"
+min_delay_s = 2.0
+timeout_s = 45
+
+# Outlets in scope after the Phase 0 source check (docs/sources.md, DECISIONS.md D-19..D-23).
+[outlets.citynews]
+name = "CityNews Toronto"
+domain = "toronto.citynews.ca"
+crawl_delay_s = 10.0
+
+[outlets.ctv]
+name = "CTV News Toronto"
+domain = "www.ctvnews.ca"
+path_prefix = "/toronto/"
+crawl_delay_s = 2.0
+
+[outlets.global]
+name = "Global News"
+domain = "globalnews.ca"
+crawl_delay_s = 2.0
+
+[outlets.cbc]
+name = "CBC Toronto"
+domain = "www.cbc.ca"
+path_prefix = "/news/canada/toronto/"
+crawl_delay_s = 2.0
+
+[police]
+wayback_prefix = "tps.ca/media-centre/news-releases/"
+wayback_delay_s = 2.0
+
+[models.spacy]
+parser = "en_core_web_trf"
+parser_version = "3.8.0"
+fast = "en_core_web_sm"
+fast_version = "3.8.0"
+
+[models.coref]
+name = "biu-nlp/f-coref"
+revision = "e91dfff12879495d882ba9460d0c5d5dd44ade59"
+
+[models.nli]
+name = "MoritzLaurer/deberta-v3-base-zeroshot-v2.0"
+revision = "8e7e5af5983a0ddb1a5b45a38b129ab69e2258e8"
+
+[models.embed]
+name = "sentence-transformers/all-mpnet-base-v2"
+revision = "e8c3b32edf5434bc2275fc9bab85f82640a19130"
+
+[models.setfit_base]
+name = "sentence-transformers/all-MiniLM-L6-v2"
+revision = "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
+
+[qwen]
+host = "http://localhost:11434"
+tag = "qwen3:4b"
+digest = ""  # filled after `ollama pull`; see PROGRESS.md
+temperature = 0
+seed = 42
+num_ctx = 4096
+
+[matching]
+# dev-tuned: cosine similarity and char 5-gram Jaccard for police_matched
+embed_threshold = 0.80
+char_threshold = 0.30
+release_window_days = 3
+
+[eval]
+seed = 20261119
