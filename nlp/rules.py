@@ -173,20 +173,34 @@ def _is_user(t: Token | None) -> bool:
     return t is not None and category(t) is not None
 
 
+def is_passive(v: Token, has_object: bool) -> bool:
+    """Passive marking on a verb: aux/subject passive deps, or a reduced participle clause."""
+    deps = {c.dep_ for c in v.children}
+    if deps & {"auxpass", "nsubjpass", "csubjpass"}:
+        return True
+    if v.tag_ == "VBN" and v.dep_ in ("acl", "advcl", "pcomp", "xcomp") and not has_object:
+        return True
+    # "was struck and dragged": a bare VBN conjunct shares the head's passive auxiliary.
+    return (
+        v.tag_ == "VBN"
+        and v.dep_ == "conj"
+        and not has_object
+        and not deps & {"nsubj", "aux"}
+        and v.head.pos_ in ("VERB", "AUX")
+        and is_passive(v.head, False)
+    )
+
+
 def voice(sent: Span) -> tuple[str, str]:
     imp = find_impact(sent)
     v = imp.verb
     if v is None:
         noun = has_collision_noun(sent)
         return "nominal", f"no impact verb; collision noun '{noun.text if noun else '?'}'"
-    deps = {c.dep_ for c in v.children}
     agent = _agent(v)
     objs = [o for o in _objects(v) if _is_user(o)]
     subj = _subject(imp, sent)
-    passive_marked = _lemma(v) not in lx.INTRANSITIVE_IMPACT and (
-        bool(deps & {"auxpass", "nsubjpass", "csubjpass"})
-        or (v.tag_ == "VBN" and v.dep_ in ("acl", "advcl", "pcomp", "xcomp") and not objs)
-    )
+    passive_marked = _lemma(v) not in lx.INTRANSITIVE_IMPACT and is_passive(v, bool(objs))
     # Headline reduced passive: "Cyclist struck on Bloor" parsed as active with no object.
     base = _lemma(v)
     reduced = (
