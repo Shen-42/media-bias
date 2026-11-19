@@ -32,11 +32,22 @@ def main() -> None:
     ap.add_argument("--db", default=None)
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--topic", default="crash")
+    ap.add_argument(
+        "--retry-failed", action="store_true", help="requeue failures other than blocks/404s"
+    )
     args = ap.parse_args()
     cfg = config.load()
     o = cfg["outlets"][args.outlet]
     f = Fetcher(delays={o["domain"]: o["crawl_delay_s"]})
     con = db.connect(args.db)
+    if args.retry_failed:
+        n_re = con.execute(
+            "UPDATE discovered_urls SET status='new' WHERE outlet=? AND status LIKE 'failed:%'"
+            " AND status NOT LIKE 'failed:blocked%' AND status != 'failed:http_404'",
+            (args.outlet,),
+        ).rowcount
+        con.commit()
+        print(f"{args.outlet}: requeued {n_re} failed urls", flush=True)
     rows = con.execute(
         "SELECT url FROM discovered_urls WHERE outlet=? AND topic_hint=? AND status='new'"
         " ORDER BY coalesce(url_date, lastmod)",
@@ -81,7 +92,7 @@ def main() -> None:
             status = f"failed:{type(e).__name__}"
         con.execute("UPDATE discovered_urls SET status=? WHERE url=?", (status, url))
         con.commit()
-        if n % 50 == 0:
+        if n % 50 == 0 or status.startswith("failed"):
             print(f"{args.outlet} {n}/{len(rows)} {status} {url}", flush=True)
     print(f"{args.outlet} done: {len(rows)}", flush=True)
 

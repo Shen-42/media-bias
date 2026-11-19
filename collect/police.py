@@ -118,7 +118,7 @@ def main() -> None:
             ),
         )
         con.commit()
-        if n % 100 == 0:
+        if n % 100 == 0 or status != "ok":
             print(f"{n}/{len(todo)} id={rid} {rec['published']} {status}", flush=True)
 
 

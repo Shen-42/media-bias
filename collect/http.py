@@ -63,22 +63,44 @@ class Fetcher:
         if check_robots and not self.allowed(url):
             raise Blocked(f"robots.txt disallows {url}")
         host = urlparse(url).netloc
-        for attempt in range(retries):
+        outage_waited = False
+        attempt = 0
+        while True:
             self._wait(host)
             try:
                 r = self.session.get(url, timeout=self.timeout)
             except requests.RequestException:
-                if attempt == retries - 1:
+                attempt += 1
+                if attempt < retries:
+                    time.sleep(10 * attempt)
+                    continue
+                if outage_waited:
                     raise
-                time.sleep(10 * (attempt + 1))
+                # Retries exhausted: wait out an outage once, then try again with full checks.
+                self._wait_for_network(host)
+                outage_waited, attempt = True, retries - 1
                 continue
             if r.status_code == 403 or any(m in r.text[:5000] for m in CHALLENGE_MARKERS):
                 raise Blocked(f"{r.status_code} challenge/forbidden at {url}")
             if r.status_code in (429, 500, 502, 503, 504) and attempt < retries - 1:
-                time.sleep(30 * (attempt + 1))
+                attempt += 1
+                time.sleep(30 * attempt)
                 continue
             return r
-        return r
+
+    def _wait_for_network(self, host: str, max_wait_s: int = 7200) -> None:
+        """Network outage (Wi-Fi drop, sleep/wake): poll the host with growing waits for up
+        to max_wait_s, so one outage does not mark a run of URLs as failed."""
+        waited, step = 0, 60
+        while waited < max_wait_s:
+            print(f"network down for {host}; waiting {step}s", flush=True)
+            time.sleep(step)
+            waited += step
+            try:
+                self.session.head(f"https://{host}/", timeout=self.timeout)
+                return
+            except requests.RequestException:
+                step = min(step * 2, 600)
 
 
 def raw_path(url: str) -> Path:

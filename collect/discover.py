@@ -81,34 +81,67 @@ def _store(con, outlet: str, entries, source: str, start: str, end: str) -> int:
     return n
 
 
+def _sitemaps_done(con) -> set[str]:
+    con.execute("CREATE TABLE IF NOT EXISTS sitemaps_done (url TEXT PRIMARY KEY, outlet TEXT)")
+    return {r[0] for r in con.execute("SELECT url FROM sitemaps_done")}
+
+
+def _walk(f: Fetcher, con, outlet: str, maps: list[str], start: str, end: str, keep=None) -> None:
+    """Fetch each sitemap once. Finished ones are recorded so a rerun resumes; a failed one is
+    logged and left for the rerun instead of aborting the outlet."""
+    done = _sitemaps_done(con)
+    failed = 0
+    for sm in maps:
+        if sm in done:
+            continue
+        try:
+            r = f.get(sm)
+            if r.status_code != 200:  # e.g. 504 after retries: not an empty sitemap
+                raise RuntimeError(f"http_{r.status_code}")
+            entries = parse_sitemap(r.text)
+        except Blocked:
+            raise
+        except Exception as e:  # network or parse error: log, continue, retry on rerun
+            failed += 1
+            print(f"{outlet} FAILED sitemap {sm}: {type(e).__name__} {e}", flush=True)
+            continue
+        if keep:
+            entries = keep(sm, entries)
+        n = _store(con, outlet, entries, sm, start, end)
+        con.execute("INSERT OR IGNORE INTO sitemaps_done VALUES (?,?)", (sm, outlet))
+        con.commit()
+        print(f"{outlet} {sm.rsplit('/', 1)[-1][:60]}: {len(entries)} urls, {n} kept", flush=True)
+    print(f"{outlet}: {failed} sitemaps failed (rerun to retry)", flush=True)
+
+
 def citynews(f: Fetcher, con, start: str, end: str) -> None:
     index = f.get("https://toronto.citynews.ca/sitemap.xml").text
     maps = [u for u, _ in parse_sitemap(index) if "sitemap-pt-post-p" in u]
-    for sm in maps:
-        entries = parse_sitemap(f.get(sm).text)
-        n = _store(con, "citynews", entries, sm, start, end)
-        print(f"citynews {sm.rsplit('/', 1)[-1]}: {len(entries)} urls, {n} kept", flush=True)
+    _walk(f, con, "citynews", maps, start, end)
 
 
 def ctv(f: Fetcher, con, start: str, end: str) -> None:
     d, last = date.fromisoformat(start), date.fromisoformat(end)
+    maps = []
     while d <= last:
-        u = f"https://www.ctvnews.ca/arc/outboundfeeds/sitemap/{d.isoformat()}/?outputType=xml"
-        entries = [(x, d.isoformat()) for x, _ in parse_sitemap(f.get(u).text) if "/toronto/" in x]
-        n = _store(con, "ctv", entries, u, start, end)
-        if d.day == 1:
-            print(f"ctv {d}: {len(entries)} toronto urls, {n} kept", flush=True)
+        maps.append(
+            f"https://www.ctvnews.ca/arc/outboundfeeds/sitemap/{d.isoformat()}/?outputType=xml"
+        )
         d += timedelta(days=1)
+
+    def keep(sm, entries):
+        day = re.search(r"/sitemap/(\d{4}-\d{2}-\d{2})/", sm).group(1)
+        return [(x, day) for x, _ in entries if "/toronto/" in x]
+
+    _walk(f, con, "ctv", maps, start, end, keep)
 
 
 def global_news(f: Fetcher, con, start: str, end: str) -> None:
     index = f.get("https://globalnews.ca/sitemap-index-2.xml").text
     maps = [u for u, _ in parse_sitemap(index) if re.search(r"/sitemap-\d+\.xml$", u)]
-    for sm in maps:
-        entries = parse_sitemap(f.get(sm).text)
-        entries = [(u, lm) for u, lm in entries if "/news/" in u]
-        n = _store(con, "global", entries, sm, start, end)
-        print(f"global {sm.rsplit('/', 1)[-1]}: {len(entries)} urls, {n} kept", flush=True)
+    _walk(
+        f, con, "global", maps, start, end, lambda sm, e: [(u, lm) for u, lm in e if "/news/" in u]
+    )
 
 
 def cbc(f: Fetcher, con, start: str, end: str) -> None:
