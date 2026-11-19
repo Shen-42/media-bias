@@ -78,3 +78,7 @@ release_window_days = 3
 
 [eval]
 seed = 20261119
+
+[analysis]
+# Bill 212 (Reducing Gridlock, Saving You Time Act) royal assent; pre = published before (D-47).
+bill212_cutoff = "2024-11-25"

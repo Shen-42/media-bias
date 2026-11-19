@@ -112,7 +112,12 @@ with tab[0]:
         )
 
 with tab[1]:
-    st.write("Body sentences of initial reports, reporter text only (quotes excluded).")
+    w = table("comparison_window")
+    span = f" ({w.iloc[0]['start']} to {w.iloc[0]['end']})" if not w.empty else ""
+    st.write(
+        "Body sentences of initial reports, reporter text only (quotes excluded), restricted "
+        f"to the window all outlets cover{span}."
+    )
     wire = st.radio("Wire copy", ["Without wire stories", "With wire stories each outlet ran"])
     d = table("outlet_without_wire" if wire.startswith("Without") else "outlet_with_wire")
     if not d.empty:
@@ -130,11 +135,25 @@ with tab[1]:
         )
 
 with tab[2]:
-    d = table("year")
+    st.write(
+        "Trends are shown within each outlet and never pooled: outlets cover different "
+        "periods (CTV from 2025)."
+    )
+    d = table("year_by_outlet")
     if not d.empty:
+        d = d.assign(outlet_year=d["outlet"] + " " + d["year"].astype(str))
         st.altair_chart(
-            ci_chart(d, "year", ["driver_hidden", "voice_agentless_passive", "accident_term"])
+            ci_chart(
+                d, "outlet_year", ["driver_hidden", "voice_agentless_passive", "accident_term"]
+            )
         )
+    st.subheader("Before and after Bill 212 (outlets with data on both sides only)")
+    d = table("bill212_pre_post_by_outlet")
+    if not d.empty:
+        d = d.assign(outlet_period=d["outlet"] + " " + d["period"])
+        st.altair_chart(ci_chart(d, "outlet_period", ["driver_hidden", "voice_agentless_passive"]))
+    st.subheader("Coverage: in-scope articles per outlet per quarter")
+    st.dataframe(table("coverage_by_quarter"), use_container_width=True)
     st.dataframe(table("corpus_stats"), use_container_width=True)
 
 with tab[3]:

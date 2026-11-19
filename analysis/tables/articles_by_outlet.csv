@@ -1,5 +1,0 @@
-outlet,measure,rate,ci_lo,ci_hi,n_units,n_articles
-citynews,driver_ever_mentioned,0.9,0.7,1.0,10,10
-citynews,thematic_frame,0.0,0.0,0.0,10,10
-citynews,vru_conduct_any,0.0,0.0,0.0,10,10
-citynews,driver_exceptional,0.1,0.0,0.3,10,10

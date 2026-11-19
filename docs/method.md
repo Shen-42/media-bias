@@ -11,7 +11,7 @@
 
 ## Police releases
 
-Toronto Police news releases come from Wayback Machine copies only; the TPS site blocks scripted access. About 42% of release IDs in the window are archived, so the police comparison is a secondary analysis on the subset of articles linked to an archived release. A bias check compares linked and unlinked articles.
+Toronto Police news releases come from Wayback Machine copies only; the TPS site blocks scripted access. Releases are public government records, not commercial content, and the project publishes no release text beyond short excerpts. Wayback copies of blogTO and Toronto Today were not used: they are commercial outlets whose live sites block scripted access, and using archive copies would get around that choice (D-46). About 42% of release IDs in the window are archived, so the police comparison is a secondary analysis on the subset of articles linked to an archived release. A bias check compares linked and unlinked articles.
 
 An article is linked to a release when the dates are close and they share street names. Each article sentence is compared with the release sentences by embedding similarity (all-mpnet-base-v2) and character 5-gram overlap. Thresholds were tuned on the dev set only.
 
@@ -32,3 +32,5 @@ An article is linked to a release when the dates are close and they share street
 ## Reporting
 
 Rates come with 95% bootstrap intervals, resampling articles. Outlets are not ranked, and no difference is claimed where intervals overlap.
+
+Coverage is uneven (D-45). Outlet comparisons use only the window all three outlets cover, because CTV starts in 2025. Trends over time are shown within each outlet and never pooled. Before/after Bill 212 (royal assent 2024-11-25) is compared only for outlets with articles on both sides.

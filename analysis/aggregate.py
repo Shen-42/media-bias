@@ -95,6 +95,7 @@ def load(con) -> tuple[pd.DataFrame, pd.DataFrame]:
             [
                 "article_id",
                 "outlet",
+                "published",
                 "year",
                 "article_type",
                 "is_canonical",
@@ -135,7 +136,41 @@ SENT_MEASURES = [
 ART_MEASURES = ["driver_ever_mentioned", "thematic_frame", "vru_conduct_any", "driver_exceptional"]
 
 
-def build_tables(arts: pd.DataFrame, sents: pd.DataFrame) -> dict[str, pd.DataFrame]:
+def common_window(arts: pd.DataFrame) -> tuple[str, str]:
+    """Dates every outlet covers: latest first article to earliest last article (D-45)."""
+    g = arts.groupby("outlet")["published"].agg(["min", "max"])
+    return str(g["min"].max())[:10], str(g["max"].min())[:10]
+
+
+def in_window(df: pd.DataFrame, window: tuple[str, str]) -> pd.DataFrame:
+    return df[df["published"].str[:10].between(*window)]
+
+
+def pre_post(df: pd.DataFrame, cutoff: str) -> pd.DataFrame:
+    """Label pre/post a date; keep only outlets with data on both sides (D-45)."""
+    df = df.assign(period=df["published"].str[:10].lt(cutoff).map({True: "pre", False: "post"}))
+    both = df.groupby("outlet")["period"].nunique()
+    return df[df["outlet"].isin(both[both == 2].index)]
+
+
+def coverage_by_quarter(arts: pd.DataFrame) -> pd.DataFrame:
+    q = pd.PeriodIndex(arts["published"].str[:10], freq="Q").astype(str)
+    a = arts.assign(quarter=q, initial=arts["article_type"].eq("initial"))
+    g = (
+        a.groupby(["quarter", "outlet"])
+        .agg(articles=("article_id", "count"), initial_reports=("initial", "sum"))
+        .reset_index()
+    )
+    wide = g.pivot_table(
+        index="quarter", columns="outlet", values="articles", aggfunc="sum", fill_value=0
+    )
+    return wide.astype(int).reset_index()
+
+
+def build_tables(
+    arts: pd.DataFrame, sents: pd.DataFrame, bill212: str = "2024-11-25"
+) -> dict[str, pd.DataFrame]:
+    window = common_window(arts)
     init = sents[sents["article_type"] == "initial"]
     canon_body = init[(init["part"] == "body") & (init["is_canonical"] == 1)]
     reporter = canon_body[canon_body["text_source"] != "quoted"]
@@ -147,10 +182,19 @@ def build_tables(arts: pd.DataFrame, sents: pd.DataFrame) -> dict[str, pd.DataFr
     )
     # Per outlet: includes wire stories each outlet ran; reported with and without wire (Q17).
     body_all = init[(init["part"] == "body") & (init["text_source"] != "quoted")]
-    t["outlet_with_wire"] = rates(body_all, ["outlet"], SENT_MEASURES)
-    t["outlet_without_wire"] = rates(body_all[~body_all["wire"]], ["outlet"], SENT_MEASURES)
-    t["outlet_headlines"] = rates(init[init["part"] == "headline"], ["outlet"], SENT_MEASURES)
-    t["year"] = rates(reporter, ["year"], SENT_MEASURES)
+    # Outlet comparisons: only the window all outlets cover (D-45).
+    body_w = in_window(body_all, window)
+    t["outlet_with_wire"] = rates(body_w, ["outlet"], SENT_MEASURES)
+    t["outlet_without_wire"] = rates(body_w[~body_w["wire"]], ["outlet"], SENT_MEASURES)
+    t["outlet_headlines"] = rates(
+        in_window(init[init["part"] == "headline"], window), ["outlet"], SENT_MEASURES
+    )
+    # Trends: within each outlet, never pooled across outlets (D-45).
+    t["year_by_outlet"] = rates(body_all, ["outlet", "year"], SENT_MEASURES)
+    pp = pre_post(body_all, bill212)
+    t["bill212_pre_post_by_outlet"] = (
+        rates(pp, ["outlet", "period"], SENT_MEASURES) if not pp.empty else pd.DataFrame()
+    )
     t["fatal_vs_nonfatal"] = rates(reporter, ["fatal"], SENT_MEASURES)
     fu = sents[
         (sents["part"] == "body")
@@ -165,14 +209,18 @@ def build_tables(arts: pd.DataFrame, sents: pd.DataFrame) -> dict[str, pd.DataFr
     t["driver_mentioned_by_exceptional"] = rates(
         a_init, ["exceptional"], ["driver_ever_mentioned", "driver_ever_mentioned_with_quotes"]
     )
-    t["articles_by_outlet"] = rates(a_init, ["outlet"], ART_MEASURES)
+    t["articles_by_outlet"] = rates(in_window(a_init, window), ["outlet"], ART_MEASURES)
     t["articles_overall"] = rates(a_init, [], ART_MEASURES)
-    linked = a_init[a_init["linked"]]
+    linked = in_window(a_init[a_init["linked"]], window)
     t["police_overlap_by_outlet"] = (
         linked.groupby("outlet")["police_overlap"].agg(["mean", "median", "count"]).reset_index()
     )
     t["matched_vs_unmatched"] = matched_bias_check(a_init, init)
     t["corpus_stats"] = corpus_stats(arts)
+    t["coverage_by_quarter"] = coverage_by_quarter(arts)
+    t["comparison_window"] = pd.DataFrame(
+        [{"start": window[0], "end": window[1], "bill212_cutoff": bill212}]
+    )
     return t
 
 
@@ -247,7 +295,8 @@ def main() -> None:
     con = db.connect(args.db)
     arts, sents = load(con)
     TABLES.mkdir(parents=True, exist_ok=True)
-    for name, df in build_tables(arts, sents).items():
+    cutoff = config.load().get("analysis", {}).get("bill212_cutoff", "2024-11-25")
+    for name, df in build_tables(arts, sents, cutoff).items():
         df.to_csv(TABLES / f"{name}.csv", index=False)
     excerpts(con).to_csv(TABLES / "excerpts.csv", index=False)
     print(f"analysis: {len(arts)} articles, {len(sents)} crash sentences -> {TABLES}")

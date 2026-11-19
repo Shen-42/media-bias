@@ -1,5 +1,0 @@
-exceptional,measure,rate,ci_lo,ci_hi,n_units,n_articles
-exceptional,driver_ever_mentioned,1.0,1.0,1.0,1,1
-exceptional,driver_ever_mentioned_with_quotes,1.0,1.0,1.0,1,1
-ordinary,driver_ever_mentioned,0.8888888888888888,0.6666666666666666,1.0,9,9
-ordinary,driver_ever_mentioned_with_quotes,0.8888888888888888,0.6666666666666666,1.0,9,9
