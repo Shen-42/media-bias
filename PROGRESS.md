@@ -25,11 +25,11 @@ Autonomous run of Phases 0–3. Updated after each task. A new session resumes f
 - Jobs started before this change (police, CityNews fetch, CTV discovery) run old code; the retry pass in Next step 1 covers them. Failures so far: 0.
 
 ## Running in background (detached; logs in data/logs/). Times are CST.
-| Job | State at 2026-11-19 15:35 | Rate | ETA |
+| Job | State at 2026-11-19 20:10 | Rate | ETA |
 |---|---|---|---|
-| `collect.fetch citynews` | 1,217 tier 1 + 2,602 tier 2 left | ~16 s/URL (10 s crawl delay + latency) | tier 1 ~21:00; all 2026-11-20 ~08:30 |
-| `collect.fetch global` | 2,258 tier 1 + 4,638 tier 2 left | ~2.5 s/URL | 2026-11-19 ~20:30 |
-| `collect.discover ctv` → rediscover (retry 504 days) → `collect.fetch ctv` | discovery at 2024-12 | ~2 min/month | discovery ~16:45, rediscovery ~18:00, fetch done ~19:00 |
+| `collect.fetch citynews` | 1,254 fetched, 2,809 left | ~16 s/URL (10 s crawl delay + latency) | 2026-11-20 ~08:30 |
+| `collect.fetch global` | 3,423 fetched, 1,920 left | ~2.5 s/URL | 2026-11-19 ~21:30 |
+| `collect.fetch ctv` → rediscover 16 failed sitemaps → `fetch ctv --retry-failed` (chained, same domain so sequential) | 551 fetched, 898 left | ~3 s/URL | 2026-11-19 ~21:15 |
 
 ## Next (ETAs assume collection ends 2026-11-20 ~08:30 CST)
 1. Retry pass (~30 min, ~09:00): police already done; `python -m collect.fetch {citynews,global,ctv} --retry-failed`; rerun `collect.discover` for any outlet whose log shows FAILED.
