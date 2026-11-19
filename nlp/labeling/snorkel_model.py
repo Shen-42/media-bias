@@ -35,13 +35,21 @@ def lf_summary(label: str, L: np.ndarray) -> pd.DataFrame:
     return pd.DataFrame(out)
 
 
-def fit_predict(label: str, rows: list[dict]) -> tuple[np.ndarray, pd.DataFrame]:
-    """Return P(label = true) per row and the LF summary."""
+def fit(label: str, rows: list[dict]):
+    """Fit the label model on training rows only. Returns (model, LF summary)."""
     from snorkel.labeling.model import LabelModel
 
     L = label_matrix(label, rows)
     lm = LabelModel(cardinality=2, verbose=False)
     lm.fit(L, n_epochs=500, seed=SEED, log_freq=1000)
-    proba = lm.predict_proba(L)[:, 1]
-    # Rows where every LF abstained carry no signal: Snorkel returns the class prior.
-    return proba, lf_summary(label, L)
+    return lm, lf_summary(label, L)
+
+
+def predict(lm, label: str, rows: list[dict]) -> np.ndarray:
+    """P(label = true). Rows where every LF abstains get the class prior."""
+    return lm.predict_proba(label_matrix(label, rows))[:, 1]
+
+
+def fit_predict(label: str, rows: list[dict]) -> tuple[np.ndarray, pd.DataFrame]:
+    lm, summary = fit(label, rows)
+    return predict(lm, label, rows), summary

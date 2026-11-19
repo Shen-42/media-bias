@@ -1,0 +1,3 @@
+# Article or sentence IDs used as codebook or prompt examples. The eval sampler skips them.
+# Codebook v1.0 examples and Qwen prompt examples are synthetic (DECISIONS.md D-18), so no
+# corpus IDs are listed yet. Add one ID per line if a real sentence is ever used as an example.
