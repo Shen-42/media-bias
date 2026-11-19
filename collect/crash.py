@@ -25,6 +25,16 @@ OTHER_CITY_RE = re.compile(
     re.I,
 )
 VRU_WORD_RE = re.compile(r"\b(pedestrian|cyclist|bicyclist|e-?bike|bike|bicycle|scooter)s?\b", re.I)
+# A person struck by a vehicle with no occupant cue is treated as a pedestrian (D-39).
+PERSON_RE = re.compile(
+    r"\b(?:man|woman|boy|girl|child|senior|teen|teenager|person|toddler|student|\d+-year-old)s?\b",
+    re.I,
+)
+OCCUPANT_RE = re.compile(
+    r"driver of|his car|her car|their car|passenger|behind the wheel|inside the vehicle"
+    r"|occupants?|motorcyclist",
+    re.I,
+)
 MOTOR_RE = re.compile(
     r"\b(?:driver|motorist|car|vehicle|suv|truck|pickup|van|bus|streetcar|sedan|taxi"
     r"|motorcycle|tractor-trailer|minivan|jeep|hit-and-run)s?\b",
@@ -49,14 +59,19 @@ INTERSECTION_RE = re.compile(r"\b([A-Z][a-z]+(?: [A-Z][a-z]+)?) and ([A-Z][a-z]+
 STOP_STREET = {"The", "A", "An", "In", "On", "At", "Police", "Toronto", "North", "South"}
 
 
-def is_toronto(title: str, text: str) -> bool:
+LOCAL_OUTLETS = {"citynews", "ctv"}  # Toronto-section sites; Global is national (D-40)
+
+
+def is_toronto(title: str, text: str, local: bool = False) -> bool:
     blob = f"{title}\n{text}"
     if OTHER_POLICE_RE.search(blob) and not TORONTO_POLICE_RE.search(blob):
         return False
     if TORONTO_POLICE_RE.search(blob):
         return True
     lead = f"{title}\n{text[:400]}"
-    return "Toronto" in blob and not OTHER_CITY_RE.search(lead)
+    if OTHER_CITY_RE.search(lead):
+        return False
+    return local or "Toronto" in blob
 
 
 def severity(title: str, text: str) -> str:
@@ -73,9 +88,11 @@ def severity(title: str, text: str) -> str:
 def road_users(crash_text: str, article_text: str) -> list[str]:
     users = []
     t = crash_text.lower()
-    if "pedestrian" in t or re.search(r"\bwalking\b|\bcrossing\b", t):
+    cyc = bool(re.search(r"cyclist|bicycl|e-?bike|\bbike\b|scooter", t))
+    ped = "pedestrian" in t or bool(re.search(r"\bwalking\b|\bcrossing\b", t))
+    if ped or (not cyc and PERSON_RE.search(t) and not OCCUPANT_RE.search(t)):
         users.append("pedestrian")
-    if re.search(r"cyclist|bicycl|e-?bike|\bbike\b|scooter", t):
+    if cyc:
         users.append("cyclist")
     if re.search(r"\bdriver|motorist|operator\b", article_text, re.I):
         users.append("driver")
@@ -102,7 +119,10 @@ def is_crash_article(crash_sents: list[str], title: str, text: str) -> bool:
     if not crash_sents:
         return False
     joined = " ".join(crash_sents)
-    return bool(VRU_WORD_RE.search(joined) and MOTOR_RE.search(f"{title} {text}"))
+    vru = VRU_WORD_RE.search(joined) or (
+        PERSON_RE.search(joined) and not OCCUPANT_RE.search(joined)
+    )
+    return bool(vru and MOTOR_RE.search(f"{title} {text}"))
 
 
 def article_type(title: str, text: str) -> str:
@@ -202,7 +222,7 @@ def main() -> None:
             )
         ]
         title, text = a["title"] or "", a["text"] or ""
-        tor = is_toronto(title, text)
+        tor = is_toronto(title, text, local=a["outlet"] in LOCAL_OUTLETS)
         crash_ok = is_crash_article(crash, title, text)
         rec = {
             "id": a["id"],

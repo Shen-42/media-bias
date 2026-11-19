@@ -15,10 +15,25 @@ CRASH_SLUG = re.compile(
     r"pedestrian|cyclist|bicycl|bike|scooter|struck|hit-by|hit-and-run|-hit-|collision|crash"
     r"|run-over|pinned|mowed|knocked-down|dragged"
 )
+# Fetch tiers (D-32, D-38). Tier 1 names a VRU or a strike construction; tier 2 only
+# "crash"/"collision"; anything else matched by CRASH_SLUG (e.g. "prices-hit-record") is skipped.
 VRU_SLUG = re.compile(
-    r"pedestrian|cyclist|bicycl|bike|scooter|struck|hit-by|hit-and-run|-hit-|run-over|pinned"
-    r"|mowed|knocked-down|dragged|streetcar|ttc-bus"
+    r"pedestrian|cyclist|bicycl|bike|scooter|hit-by|hit-and-run|struck-by|run-over|pinned"
+    r"|mowed|knocked-down|dragged|streetcar|ttc-bus|(?:man|woman|boy|girl|senior|child)-(?:\d+-)?"
+    r"(?:struck|hit)"
 )
+TIER2_SLUG = re.compile(r"collision|crash")
+
+
+def fetch_tier(url: str) -> int | None:
+    slug = url.lower().rstrip("/").rsplit("/", 1)[-1]
+    if VRU_SLUG.search(slug):
+        return 1
+    if TIER2_SLUG.search(slug):
+        return 2
+    return None
+
+
 BIKE_LANE_SLUG = re.compile(r"bike-lane|bill-212|cycle-track|cycling-infrastructure")
 TRANSIT_SLUG = re.compile(r"\bttc\b|-ttc-|transit|subway|-lrt|crosstown|metrolinx")
 LOC_RE = re.compile(r"<loc>\s*([^<\s]+)\s*</loc>(?:\s*<lastmod>\s*([^<\s]+)\s*</lastmod>)?")

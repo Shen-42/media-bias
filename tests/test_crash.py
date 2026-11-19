@@ -96,3 +96,19 @@ def test_assign_crash_ids_groups_and_marks_follow_up():
     assert by["d"]["crash_id"] != by["a"]["crash_id"]
     assert by["b"]["article_type"] == "follow_up"
     assert by["c"]["article_type"] == "initial"
+
+
+def test_is_toronto_local_outlet_default():
+    text = "A pedestrian was struck at Eglinton and Miranda Avenue."
+    assert is_toronto("Pedestrian struck", text, local=True)
+    assert not is_toronto("Pedestrian struck", text, local=False)
+    assert not is_toronto("Pedestrian struck in Vaughan", text, local=True)
+
+
+def test_person_struck_counts_as_pedestrian():
+    sents = ["A woman in her 70s was hit by a streetcar."]
+    assert is_crash_article(sents, "Woman struck by streetcar", "streetcar")
+    assert "pedestrian" in road_users(sents[0], "")
+    assert not is_crash_article(
+        ["The driver of a car and his passenger were hit by a truck."], "Crash", "truck"
+    )

@@ -29,3 +29,12 @@ def test_parse_sitemap_with_and_without_lastmod():
         ("https://a.ca/1/", "2024-01-01T00:00Z"),
         ("https://a.ca/2/?a=1&b=2", None),
     ]
+
+
+def test_fetch_tiers():
+    from collect.discover import fetch_tier
+
+    assert fetch_tier("https://x.ca/2023/01/02/pedestrian-struck-on-bloor/") == 1
+    assert fetch_tier("https://x.ca/2023/01/02/woman-71-struck-by-falling-pole/") == 1
+    assert fetch_tier("https://x.ca/2023/01/02/fatal-crash-on-highway-401/") == 2
+    assert fetch_tier("https://x.ca/2023/01/02/food-prices-hit-record-high/") is None

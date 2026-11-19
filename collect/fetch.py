@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 
 import trafilatura
 
-from collect.discover import VRU_SLUG
+from collect.discover import fetch_tier
 from collect.http import Blocked, Fetcher, save_raw
 from common import config, db
 
@@ -42,8 +42,14 @@ def main() -> None:
         " ORDER BY coalesce(url_date, lastmod)",
         (args.outlet, args.topic),
     ).fetchall()
-    # Tier 1 first: slugs naming a VRU or a strike verb; "crash/collision only" slugs after (D-32).
-    rows = sorted(rows, key=lambda r: 0 if VRU_SLUG.search(r[0].lower()) else 1)[: args.limit]
+    # Tier 1 first, tier 2 after; slugs in neither tier are skipped as noise (D-32, D-38).
+    noise = [r[0] for r in rows if fetch_tier(r[0]) is None]
+    con.executemany(
+        "UPDATE discovered_urls SET status='skipped:slug_noise' WHERE url=?", [(u,) for u in noise]
+    )
+    con.commit()
+    rows = sorted((r for r in rows if fetch_tier(r[0])), key=lambda r: fetch_tier(r[0]))
+    rows = rows[: args.limit]
     start, end = cfg["corpus"]["start"], cfg["corpus"]["end"]
     for n, (url,) in enumerate(rows):
         status = "fetched"

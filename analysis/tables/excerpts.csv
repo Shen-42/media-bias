@@ -1,0 +1,11 @@
+outlet,month,excerpt,voice,driver_reference,evidence
+citynews,2023-01,A man in his 60s is dead after he was struck by a vehicle in North York.,passive_with_agent,vehicle,passive 'struck' + by-agent 'vehicle'
+citynews,2023-02,A 25-year-old pedestrian has died after being hit by a vehicle in Toronto’s east end and police officers say they’re treating the incident as a …,passive_with_agent,vehicle,passive 'hit' + by-agent 'vehicle'
+citynews,2023-01,Pedestrians struck waiting inside TTC shelter in Bellechasse Street area Two female pedestrians were injured after being struck by a vehicle while waiting in a …,agentless_passive,absent,"passive 'struck', no by-agent (reduced headline passive)"
+citynews,2023-02,77-year-old woman critically hurt after getting struck by vehicle in Toronto’s west-end A 77-year-old woman was rushed to a hospital with life-threatening injuries after being …,passive_with_agent,vehicle,passive 'struck' + by-agent 'vehicle'
+citynews,2023-01,A pedestrian has been struck by a truck near Bedford Park on Tuesday afternoon.,passive_with_agent,vehicle,passive 'struck' + by-agent 'truck'
+citynews,2023-01,56-year-old man dead after being struck by vehicle in Etobicoke A 56-year-old man died of his injuries after he was struck by a vehicle in …,passive_with_agent,vehicle,passive 'struck' + by-agent 'vehicle'
+citynews,2023-01,"Pedestrian struck, driver fled scene in Overlea Boulevard area",agentless_passive,absent,"passive 'struck', no by-agent (reduced headline passive)"
+citynews,2023-01,Man in 30s fighting for his life after being hit by car in Scarborough A man is fighting for his life in hospital after being …,passive_with_agent,vehicle,passive 'hit' + by-agent 'car'
+citynews,2023-01,"Three people have been injured, including a pedestrian, after a car crashed into a building in downtown Toronto.",intransitive,vehicle,impact verb 'crashed' with no struck road user as object
+citynews,2023-01,Road safety advocates are sounding the alarm as the number of pedestrians struck on Toronto streets is creeping back up.,agentless_passive,absent,"passive 'struck', no by-agent"

@@ -1,0 +1,204 @@
+"""Dashboard. Run: streamlit run app/streamlit_app.py  (MEDIA_BIAS_MODE=local for the viewer).
+
+public mode: aggregate rates with 95% CIs and at most one flagged sentence per article
+             (analysis/tables/excerpts.csv). This is the only mode that may be deployed.
+local mode:  adds the full-text article viewer, read from data/ (never deployed; copyright).
+"""
+
+import os
+import sys
+from pathlib import Path
+
+import altair as alt
+import pandas as pd
+import streamlit as st
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+TABLES = ROOT / "analysis" / "tables"
+MODE = os.environ.get("MEDIA_BIAS_MODE", "public")
+
+LABELS = {
+    "driver_hidden": "Driver hidden (no person in the impact clause)",
+    "voice_agentless_passive": "Agentless passive",
+    "voice_passive_with_agent": "Passive with agent",
+    "voice_active": "Active",
+    "voice_intransitive": "Intransitive",
+    "voice_nominal": "Nominal (no impact verb)",
+    "driver_ref_person": "Driver referred to as a person",
+    "driver_ref_vehicle": "Vehicle stands in for the driver",
+    "driver_ref_absent": "No driver or vehicle",
+    "focus_vru": "Pedestrian/cyclist is the subject",
+    "vru_as_actor": "Pedestrian/cyclist presented as actor",
+    "accident_term": "Uses 'accident'",
+    "driver_ever_mentioned": "Article ever mentions a driver",
+    "driver_ever_mentioned_with_quotes": "…including quotes",
+    "thematic_frame": "Thematic frame (trends, design, policy)",
+    "vru_conduct_any": "Mentions pedestrian/cyclist conduct",
+    "driver_exceptional": "Driver exceptional (fled, impaired, criminal charge)",
+}
+
+
+def table(name: str) -> pd.DataFrame:
+    p = TABLES / f"{name}.csv"
+    return pd.read_csv(p) if p.exists() else pd.DataFrame()
+
+
+def ci_chart(df: pd.DataFrame, group: str, measures: list[str]) -> alt.Chart:
+    d = df[df["measure"].isin(measures)].copy()
+    d["measure"] = d["measure"].map(LABELS).fillna(d["measure"])
+    d[group] = d[group].astype(str)
+    base = alt.Chart(d).encode(
+        y=alt.Y(f"{group}:N", title=None), color=alt.Color(f"{group}:N", legend=None)
+    )
+    points = base.mark_point(filled=True, size=70).encode(
+        x=alt.X("rate:Q", title="Rate (95% CI)", scale=alt.Scale(domain=[0, 1])),
+        tooltip=[
+            group,
+            "measure",
+            alt.Tooltip("rate:Q", format=".2f"),
+            alt.Tooltip("ci_lo:Q", format=".2f"),
+            alt.Tooltip("ci_hi:Q", format=".2f"),
+            "n_units",
+            "n_articles",
+        ],
+    )
+    bars = base.mark_rule().encode(x="ci_lo:Q", x2="ci_hi:Q")
+    return (bars + points).properties(height=90).facet(row=alt.Row("measure:N", title=None))
+
+
+st.set_page_config(page_title="Toronto crash framing", layout="wide")
+st.title("How Toronto news frames crashes involving pedestrians and cyclists")
+st.caption(
+    "Sentence-level framing labels from dependency rules and a weakly supervised classifier. "
+    "Rates come with 95% bootstrap intervals over articles. Outlets are not ranked: where "
+    "intervals overlap, no difference is claimed. Test labels came from an LLM annotator "
+    "(Claude Code subagent), not a human; see the write-up for what that limits."
+)
+
+tabs = ["Overview", "Outlets", "Over time", "Police releases", "Examples", "Method"]
+if MODE == "local":
+    tabs.append("Article viewer (local only)")
+tab = st.tabs(tabs)
+
+with tab[0]:
+    st.subheader("Reporter text vs. police-matched text vs. quotes")
+    d = table("overall_by_text_source")
+    if not d.empty:
+        st.altair_chart(
+            ci_chart(
+                d,
+                "text_source",
+                ["driver_hidden", "voice_agentless_passive", "driver_ref_vehicle", "accident_term"],
+            )
+        )
+    st.subheader("Headlines vs. body (reporter text)")
+    d = table("headline_vs_body")
+    if not d.empty:
+        st.altair_chart(
+            ci_chart(
+                d,
+                "part",
+                ["driver_hidden", "voice_agentless_passive", "voice_nominal", "focus_vru"],
+            )
+        )
+    st.subheader("Is the driver ever mentioned? Split by exceptional driver behaviour")
+    d = table("driver_mentioned_by_exceptional")
+    if not d.empty:
+        st.altair_chart(
+            ci_chart(
+                d, "exceptional", ["driver_ever_mentioned", "driver_ever_mentioned_with_quotes"]
+            )
+        )
+
+with tab[1]:
+    st.write("Body sentences of initial reports, reporter text only (quotes excluded).")
+    wire = st.radio("Wire copy", ["Without wire stories", "With wire stories each outlet ran"])
+    d = table("outlet_without_wire" if wire.startswith("Without") else "outlet_with_wire")
+    if not d.empty:
+        st.altair_chart(
+            ci_chart(
+                d,
+                "outlet",
+                ["driver_hidden", "voice_agentless_passive", "driver_ref_vehicle", "accident_term"],
+            )
+        )
+    d = table("articles_by_outlet")
+    if not d.empty:
+        st.altair_chart(
+            ci_chart(d, "outlet", ["driver_ever_mentioned", "thematic_frame", "vru_conduct_any"])
+        )
+
+with tab[2]:
+    d = table("year")
+    if not d.empty:
+        st.altair_chart(
+            ci_chart(d, "year", ["driver_hidden", "voice_agentless_passive", "accident_term"])
+        )
+    st.dataframe(table("corpus_stats"), use_container_width=True)
+
+with tab[3]:
+    st.write(
+        "Secondary analysis on the subset of articles linked to an archived Toronto Police "
+        "release (Wayback Machine). About 42% of releases in the window are archived, so this "
+        "subset may not represent all coverage; the bias check compares linked and unlinked "
+        "articles."
+    )
+    st.dataframe(table("matched_vs_unmatched"), use_container_width=True)
+    st.dataframe(table("police_overlap_by_outlet"), use_container_width=True)
+
+with tab[4]:
+    st.write("At most one flagged sentence per article, with the rule that fired.")
+    st.dataframe(table("excerpts"), use_container_width=True)
+
+with tab[5]:
+    st.markdown(
+        (ROOT / "docs" / "method.md").read_text() if (ROOT / "docs" / "method.md").exists() else ""
+    )
+    st.subheader("Evaluation (test set, random rows)")
+    p = ROOT / "eval" / "reports" / "metrics_summary.csv"
+    if p.exists():
+        m = pd.read_csv(p)
+        st.dataframe(m[m["sample"] == "random"], use_container_width=True)
+    st.info(
+        "Suggestions from the Road Collision Reporting Guidelines are suggestions, not "
+        "measured results: name the driver as a person, prefer 'crash' or 'collision' to "
+        "'accident', and say who struck whom."
+    )
+
+if MODE == "local":
+    with tab[-1]:
+        from common import db
+
+        con = db.connect()
+        arts = pd.read_sql(
+            "SELECT id, outlet, published, title FROM articles WHERE is_crash=1 AND is_toronto=1"
+            " ORDER BY published DESC",
+            con,
+        )
+        pick = st.selectbox(
+            "Article",
+            arts["id"],
+            format_func=lambda i: " | ".join(
+                arts.loc[arts["id"] == i, ["published", "outlet", "title"]].iloc[0].astype(str)
+            ),
+        )
+        sents = pd.read_sql(
+            "SELECT id, part, text, is_crash, text_source, release_sim FROM sentences"
+            " WHERE article_id=? ORDER BY part DESC, idx",
+            con,
+            params=(pick,),
+        )
+        labs = pd.read_sql(
+            "SELECT sentence_id, label, value, evidence FROM labels WHERE source IN"
+            " ('rule','setfit') AND sentence_id LIKE ?",
+            con,
+            params=(f"{pick}:%",),
+        )
+        for _, s in sents.iterrows():
+            own = labs[labs["sentence_id"] == s["id"]]
+            flagged = s["is_crash"] or (own["value"] == "true").any()
+            st.markdown(("**" if flagged else "") + s["text"] + ("**" if flagged else ""))
+            if flagged:
+                st.caption(f"text_source={s['text_source']} release_sim={s['release_sim']}")
+                st.dataframe(own[["label", "value", "evidence"]], hide_index=True)
