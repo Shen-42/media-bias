@@ -78,15 +78,31 @@ def is_collision(title: str | None, text: str) -> bool:
     return bool(COLLISION_RE.search((title or "") + " " + text[:600]))
 
 
+def failed_ids(con) -> dict[int, tuple[str, str]]:
+    """Stored releases whose fetch was not ok, as {id: (wayback_ts, url)}."""
+    return {
+        r[0]: (r[1], r[2])
+        for r in con.execute(
+            "SELECT id, wayback_ts, url FROM police_releases WHERE fetch_status != 'ok'"
+        )
+    }
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--db", default=None)
     ap.add_argument("--limit", type=int, default=None)
+    ap.add_argument(
+        "--retry-failed", action="store_true", help="refetch stored non-ok IDs; skip CDX listing"
+    )
     args = ap.parse_args()
     cfg = config.load()
     con = db.connect(args.db)
     fetcher = Fetcher(delays={"web.archive.org": cfg["police"]["wayback_delay_s"]})
-    ids = enumerate_ids(fetcher, cfg["police"]["wayback_prefix"])
+    if args.retry_failed:
+        ids = failed_ids(con)
+    else:
+        ids = enumerate_ids(fetcher, cfg["police"]["wayback_prefix"])
     print(f"archived release ids: {len(ids)}", flush=True)
     done = {r[0] for r in con.execute("SELECT id FROM police_releases WHERE fetch_status='ok'")}
     start, end = cfg["corpus"]["start"], cfg["corpus"]["end"]

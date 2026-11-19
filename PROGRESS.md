@@ -11,6 +11,7 @@ Autonomous run of Phases 0–3. Updated after each task. A new session resumes f
 - UD EWT passive component check: clausal participles P 0.92 / R 0.80 / F1 0.85 (D-41). PolNeAR skipped (no license, D-42).
 - Annotator instructions (eval/annotation/instructions.md) and merge tool (eval/merge_labels.py).
 - Coverage rules (D-45): outlet comparisons in the common window, per-outlet trends, Bill 212 pre/post (cutoff 2024-11-25, D-47) only for outlets on both sides, coverage-by-quarter table. Wayback distinction logged (D-46). docs/writeup.md skeleton with coverage, methods and limitations sections.
+- Police releases complete (2026-11-19 19:54, retry pass done): 5,336 of 5,347 archived IDs; 5,219 in window; 334 collision releases; 11 unrecoverable 404s (D-49).
 - Pooled tables each have a per-outlet breakdown and outlet sample shares with the largest contributor flagged (D-48); shown in the dashboard; app handles empty tables (headless smoke test passes).
 
 ## Outlets
@@ -26,13 +27,12 @@ Autonomous run of Phases 0–3. Updated after each task. A new session resumes f
 ## Running in background (detached; logs in data/logs/). Times are CST.
 | Job | State at 2026-11-19 15:35 | Rate | ETA |
 |---|---|---|---|
-| `collect.police` (Wayback) | 1,284 of ~5,400 IDs | 2.3 s/ID | 2026-11-19 ~18:15 |
 | `collect.fetch citynews` | 1,217 tier 1 + 2,602 tier 2 left | ~16 s/URL (10 s crawl delay + latency) | tier 1 ~21:00; all 2026-11-20 ~08:30 |
 | `collect.fetch global` | 2,258 tier 1 + 4,638 tier 2 left | ~2.5 s/URL | 2026-11-19 ~20:30 |
 | `collect.discover ctv` → rediscover (retry 504 days) → `collect.fetch ctv` | discovery at 2024-12 | ~2 min/month | discovery ~16:45, rediscovery ~18:00, fetch done ~19:00 |
 
 ## Next (ETAs assume collection ends 2026-11-20 ~08:30 CST)
-1. Retry pass (~30 min, ~09:00): `python -m collect.police`; `python -m collect.fetch {citynews,global,ctv} --retry-failed`; rerun `collect.discover` for any outlet whose log shows FAILED.
+1. Retry pass (~30 min, ~09:00): police already done; `python -m collect.fetch {citynews,global,ctv} --retry-failed`; rerun `collect.discover` for any outlet whose log shows FAILED.
 2. `./run_pipeline.sh --eval-sample` (~7 h, ~16:00): sentences + trf parse, crash filter, dedupe, overlap, coref, NLI and Qwen on pools (Qwen ~3 s/sentence is most of it).
 3. Annotator subagents (~1 h, ~17:00): codebook.md + packets only → eval/dev_crash.csv, eval/test_crash.csv, eval/test_crash_annotator2.csv (30 rows).
 4. `./run_pipeline.sh` (~1 h, ~18:00): tune on dev, Snorkel, SetFit, article labels, scoring, aggregates.

@@ -12,7 +12,7 @@ class FakeSession:
         self.script = list(script)  # each item: exception instance or (status, text)
         self.calls = 0
 
-    def get(self, url, timeout=None):
+    def get(self, url, timeout=None, headers=None):
         self.calls += 1
         item = self.script.pop(0)
         if isinstance(item, Exception):
@@ -101,3 +101,22 @@ def test_discovery_treats_http_error_as_failed_not_empty(tmp_path):
     discover._walk(f2, con, "x", maps, "2023-01-01", "2026-10-31")
     assert f2.seen == maps  # the 504 sitemap was not marked done
     assert con.execute("SELECT count(*) FROM discovered_urls").fetchone()[0] == 1
+
+
+def test_mislabeled_gzip_body_is_read_raw(monkeypatch):
+    import gzip
+    import io
+
+    f = _fetcher(monkeypatch, [requests.exceptions.ContentDecodingError()])
+    waited = []
+    monkeypatch.setattr(f, "_wait_for_network", lambda host: waited.append(host))
+    for body, want in (
+        (b"<html>plain</html>", "<html>plain</html>"),
+        (gzip.compress(b"<html>gz</html>"), "<html>gz</html>"),
+    ):
+        r = requests.Response()
+        r.status_code, r.raw = 200, io.BytesIO(body)
+        r.raw.read = (lambda b: lambda decode_content=True: b)(body)
+        monkeypatch.setattr(f.session, "get", lambda *a, _r=r, **k: _r)
+        assert f._get_raw("https://a.ca/x").text == want
+    assert waited == []

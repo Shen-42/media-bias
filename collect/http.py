@@ -68,7 +68,11 @@ class Fetcher:
         while True:
             self._wait(host)
             try:
-                r = self.session.get(url, timeout=self.timeout)
+                try:
+                    r = self.session.get(url, timeout=self.timeout)
+                except requests.exceptions.ContentDecodingError:
+                    # Wayback sometimes labels a plain body "Content-Encoding: gzip".
+                    r = self._get_raw(url)
             except requests.RequestException:
                 attempt += 1
                 if attempt < retries:
@@ -87,6 +91,17 @@ class Fetcher:
                 time.sleep(30 * attempt)
                 continue
             return r
+
+    def _get_raw(self, url: str) -> requests.Response:
+        """Read the body without decoding; gunzip only if it really is gzip."""
+        r = self.session.get(
+            url, timeout=self.timeout, headers={"Accept-Encoding": "identity"}, stream=True
+        )
+        body = r.raw.read(decode_content=False)
+        if body[:2] == b"\x1f\x8b":
+            body = gzip.decompress(body)
+        r._content, r._content_consumed = body, True
+        return r
 
     def _wait_for_network(self, host: str, max_wait_s: int = 7200) -> None:
         """Network outage (Wi-Fi drop, sleep/wake): poll the host with growing waits for up

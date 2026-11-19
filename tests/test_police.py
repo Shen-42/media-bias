@@ -22,3 +22,13 @@ def test_parse_release_extracts_title_date_and_body():
 def test_is_collision_positive_and_negative():
     assert is_collision("Fatal Collision, Pedestrian Struck", "")
     assert not is_collision("Man Arrested in Robbery Investigation", "A man was arrested.")
+
+
+def test_failed_ids_reads_only_non_ok(tmp_path):
+    from collect.police import failed_ids
+    from common import db
+
+    con = db.connect(str(tmp_path / "t.sqlite"))
+    con.execute("INSERT INTO police_releases VALUES (1,'u1','t1',NULL,NULL,'',0,'ok')")
+    con.execute("INSERT INTO police_releases VALUES (2,'u2','t2',NULL,NULL,'',0,'http_404')")
+    assert failed_ids(con) == {2: ("t2", "u2")}
