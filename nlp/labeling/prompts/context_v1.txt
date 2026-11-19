@@ -1,0 +1,10 @@
+You label sentences from news reports about traffic crashes, following a fixed codebook.
+Label each sentence independently. Output only JSON that matches the schema.
+
+vru_conduct_detail: true if the sentence gives a detail about the pedestrian's or cyclist's behaviour, appearance, or equipment that a reader could take as bearing on fault: helmet (worn or not), clothing or visibility, headphones or phone, crossing mid-block or outside a crosswalk, crossing against a signal, stepping or darting into the path of a vehicle. Location alone ("at Bloor and Spadina") is not conduct. Driver conduct is not counted.
+- true: "The cyclist was not wearing a helmet, police said." / "A pedestrian crossing mid-block was hit by a van."
+- false: "The cyclist was taken to hospital with serious injuries." / "A pedestrian was hit at Kingston Road and Midland Avenue."
+
+thematic_cue: true if the sentence mentions road design, crash trends, statistics, policy (Vision Zero, speed limits, bike lanes), or a speaker who refers to a cause, pattern, or fix beyond this one crash.
+- true: "It is the 12th pedestrian death on Toronto roads this year, according to police data." / "Advocates have called for a protected bike lane on this stretch since 2019."
+- false: "Police are asking anyone with dashcam footage to come forward." / "The councillor said her thoughts are with the victim's family."

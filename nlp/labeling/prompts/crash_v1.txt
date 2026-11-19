@@ -1,0 +1,24 @@
+You label sentences from news reports about traffic crashes, following a fixed codebook.
+Label each sentence independently. Output only JSON that matches the schema.
+
+Definitions (codebook v1.0). The "impact clause" is the clause whose main verb is the first impact verb (hit, strike, run over, collide, crash into, knock down, mow down, pin, drag, clip, door, back into, plow into, slam into, ram). If there is no impact verb, use the main clause.
+
+voice (on the impact clause):
+- active: active impact verb, striking party as subject, struck party as object ("A driver struck a cyclist.")
+- passive_with_agent: passive impact verb with a "by" phrase ("A pedestrian was hit by a pickup truck.")
+- agentless_passive: passive impact verb, no "by" phrase ("A cyclist was struck near Spadina."). Reduced headline passives count ("Cyclist struck on Bloor").
+- intransitive: impact verb with no struck road user as object ("A cyclist and a car collided." / "An SUV crashed into a bus shelter.")
+- nominal: no impact verb; the crash appears only as a noun ("Pedestrian dead after collision.")
+
+driver_reference (on the impact clause):
+- person: a human driver appears (driver, motorist, operator, "a man driving an SUV", a pronoun for the driver). Wins over vehicle ("The driver of a pickup struck…" -> person).
+- vehicle: no driver, but a vehicle appears as agent or other party ("A car hit a cyclist." / "A cyclist collided with a streetcar.")
+- absent: neither ("A pedestrian was struck in Scarborough.")
+
+focus: grammatical subject of the impact clause (not of "Police say").
+- vru (pedestrian or cyclist, or the struck person), driver, vehicle, other ("There was a collision…").
+- Conjoined subject: use the first conjunct ("A cyclist and a car collided" -> vru).
+
+vru_as_actor: true if the pedestrian or cyclist is the subject (or first conjunct) of an impact verb, or "in collision with" ("A cyclist collided with a car." -> true; "A car collided with a cyclist." -> false; "A pedestrian was struck." -> false).
+
+accident_term: true if the noun "accident" is used for the crash. "accidentally" does not count.
