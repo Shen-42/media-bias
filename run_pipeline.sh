@@ -7,7 +7,7 @@ set -euo pipefail
 PY=${PY:-.venv/bin/python}
 step() { echo "== $*"; caffeinate -i "$PY" -m "$@"; }
 
-step nlp.sentences --redo   # split, crash filter, rules, quotes (rebuilds all)
+step nlp.sentences ${REDO:+--redo}   # new articles only; REDO=1 rebuilds all after rule changes
 step collect.crash          # Toronto/crash filter, metadata, release + crash linking
 step collect.dedupe         # wire groups
 step nlp.overlap            # release similarity -> text_source

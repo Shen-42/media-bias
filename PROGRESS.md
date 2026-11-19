@@ -25,18 +25,19 @@ Autonomous run of Phases 0–3. Updated after each task. A new session resumes f
 - Jobs started before this change (police, CityNews fetch, CTV discovery) run old code; the retry pass in Next step 1 covers them. Failures so far: 0.
 
 ## Running in background (detached; logs in data/logs/). Times are CST.
-| Job | State at 2026-11-19 20:10 | Rate | ETA |
+| Job | State at 2026-11-19 21:40 | Rate | ETA |
 |---|---|---|---|
-| `collect.fetch citynews` | 1,254 fetched, 2,809 left | ~16 s/URL (10 s crawl delay + latency) | 2026-11-20 ~08:30 |
-| `collect.fetch global` | 3,423 fetched, 1,920 left | ~2.5 s/URL | 2026-11-19 ~21:30 |
-| `collect.fetch ctv` → rediscover 16 failed sitemaps → `fetch ctv --retry-failed` (chained, same domain so sequential) | 551 fetched, 898 left | ~3 s/URL | 2026-11-19 ~21:15 |
+| `collect.fetch citynews` | 1,686 fetched, 2,376 crash URLs left | ~16 s/URL (10 s crawl delay + latency) | 2026-11-20 ~08:30 |
+| `nlp.sentences --redo` on the 7,957 articles already collected | started 21:30 | ~4 articles/s | 2026-11-19 ~22:10 |
+
+Finished: Global and CTV crash-topic fetches (Global 4,818 articles, CTV 1,449); retry passes requeued 0 failures. The CTV rediscovery still had 16 daily sitemaps return 504; one more retry runs after CityNews. URLs still "new" for CTV/Global are bike-lane and transit slugs (v1.5, D-30).
 
 ## Next (ETAs assume collection ends 2026-11-20 ~08:30 CST)
-1. Retry pass (~30 min, ~09:00): police already done; `python -m collect.fetch {citynews,global,ctv} --retry-failed`; rerun `collect.discover` for any outlet whose log shows FAILED.
-2. `./run_pipeline.sh --eval-sample` (~7 h, ~16:00): sentences + trf parse, crash filter, dedupe, overlap, coref, NLI and Qwen on pools (Qwen ~3 s/sentence is most of it).
-3. Annotator subagents (~1 h, ~17:00): codebook.md + packets only → eval/dev_crash.csv, eval/test_crash.csv, eval/test_crash_annotator2.csv (30 rows).
-4. `./run_pipeline.sh` (~1 h, ~18:00): tune on dev, Snorkel, SetFit, article labels, scoring, aggregates.
-5. Fill docs/writeup.md TODOs (coverage table first, then results with the largest contributor named for each pooled table, evaluation, prior-study comparison, limitations), SUMMARY.md (~1.5 h, ~19:30).
+1. Retry pass (~30 min, ~09:00): `collect.discover ctv` (16 failed sitemaps) then `collect.fetch ctv`; `collect.fetch citynews --retry-failed`.
+2. `./run_pipeline.sh --eval-sample` (~6 h, ~15:00): sentences for new articles only (D-50), crash filter, dedupe, overlap, coref, NLI and Qwen on pools.
+3. Annotator subagents (~1 h, ~16:00): codebook.md + packets only → eval/dev_crash.csv, eval/test_crash.csv, eval/test_crash_annotator2.csv (30 rows).
+4. `./run_pipeline.sh` (~1 h, ~17:00): tune on dev, Snorkel, SetFit, article labels, scoring, aggregates.
+5. Fill docs/writeup.md TODOs and write SUMMARY.md (~1.5 h, ~18:30).
 
 ## Blockers
 - None.
