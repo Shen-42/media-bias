@@ -51,16 +51,25 @@ def split(nlp_sm, title: str | None, text: str | None) -> list[dict]:
     if title:
         out.append({"part": "headline", "idx": 0, "text": title.strip(), "start": 0, "end": 0})
     if text:
-        doc = nlp_sm(text)
-        i = 0
-        for s in doc.sents:
-            t = s.text.strip()
-            if len(t) < 3:
-                continue
-            out.append(
-                {"part": "body", "idx": i, "text": t, "start": s.start_char, "end": s.end_char}
-            )
-            i += 1
+        # Split each paragraph separately so no sentence crosses a line break.
+        i, offset = 0, 0
+        for para in text.split("\n"):
+            if para.strip():
+                for s in nlp_sm(para).sents:
+                    t = s.text.strip()
+                    if len(t) < 3:
+                        continue
+                    out.append(
+                        {
+                            "part": "body",
+                            "idx": i,
+                            "text": t,
+                            "start": offset + s.start_char,
+                            "end": offset + s.end_char,
+                        }
+                    )
+                    i += 1
+            offset += len(para) + 1
     return out
 
 
@@ -114,8 +123,13 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--db", default=None)
     ap.add_argument("--limit", type=int, default=None)
+    ap.add_argument("--redo", action="store_true", help="drop all sentences and labels first")
     args = ap.parse_args()
     con = db.connect(args.db)
+    if args.redo:
+        con.execute("DELETE FROM labels")
+        con.execute("DELETE FROM sentences")
+        con.commit()
     nlp_sm, nlp_trf = load_models()
     arts = con.execute(
         "SELECT a.* FROM articles a WHERE NOT EXISTS"

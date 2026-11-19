@@ -65,7 +65,7 @@ revision = "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
 [qwen]
 host = "http://localhost:11434"
 tag = "qwen3:4b"
-digest = ""  # filled after `ollama pull`; see PROGRESS.md
+digest = "359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7"  # qwen3:4b pinned 2026-11-19
 temperature = 0
 seed = 42
 num_ctx = 4096
