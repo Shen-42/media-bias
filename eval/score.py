@@ -24,9 +24,12 @@ SYSTEMS = {
 
 
 def norm(v) -> str | None:
+    """Canonical label string; None for blank or annotator 'not_crash' (excluded, not a class)."""
     if v is None or v == "":
         return None
     s = str(v).strip().lower()
+    if s == "not_crash":
+        return None
     return {"yes": "true", "no": "false", "1": "true", "0": "false"}.get(s, s)
 
 

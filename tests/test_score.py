@@ -62,3 +62,7 @@ def test_tuning_picks_separating_threshold():
     f, e, c = best_thresholds(rows)
     assert f == 1.0
     assert 0.7 < e <= 0.9 or c > 0.1
+
+
+def test_not_crash_gold_is_excluded():
+    assert norm("not_crash") is None
