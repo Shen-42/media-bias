@@ -47,3 +47,12 @@ The last column says how each study compares with this project, as CLAUDE.md req
 |---|---|---|
 | Road Collision Reporting Guidelines (Laker & Active Travel Academy, 2021) | UK | Edge-case reference for the codebook; rewrite suggestions, labeled as suggestions |
 | Ralph et al., Guide to Improving Police Press Releases About Car Crashes (Rutgers) | US | Same |
+
+## v1.5 label mapping (bike lane and transit coverage)
+
+| Codebook label | Prior work | How it maps |
+|---|---|---|
+| `stance_infrastructure`, `stance_cyclists` | Rissel et al. (2010), Sydney and Melbourne newspapers | Rissel et al. coded "cycling" and "cyclists" separately and found coverage of cycling more positive than coverage of cyclists. This project keeps the same split as two sentence-level stance targets. Rates not yet verified against the paper. |
+| `policy_frame` | Boydstun et al., Policy Frames Codebook; Card et al. (2015), Media Frames Corpus | Five of the 15 Boydstun frames are kept (economic, health and safety, quality of life, political, legality); the rest are `other`. The Media Frames Corpus covers US policy issues, not transport, so it is not used for training. |
+| `source_role` | Asr et al. (2021), Gender Gap Tracker | The Gender Gap Tracker counts sources by gender in Canadian outlets. This project counts them by role; `agency_staff` is added for TTC, Metrolinx and City staff (D-63). |
+| `loaded_language` (feature) | Spinde et al. (2021), BABE | BABE scores general loaded language in US political news. Reported as a feature only, not as stance. |

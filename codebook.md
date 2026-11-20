@@ -1,4 +1,4 @@
-# Codebook: crash framing (v1.0)
+# Codebook: crash framing (v1.0) and bike lane / transit coverage (v1.5 draft)
 
 Status: v1.0, frozen for Phase 2 (2026-11-19). Every example sentence is **synthetic**, written to illustrate a rule. Synthetic examples keep article text out of the repo and out of the Qwen prompts, so no test sentence can leak into a prompt.
 
@@ -260,7 +260,116 @@ Values: `initial`, `follow_up`, `roundup`. Primary analysis uses `initial`; `fol
 - Hit-and-run with an unknown driver: `driver_reference = absent` is expected. A `hit_and_run` flag is stored.
 - Text inside quotation marks: scored separately via `text_source`.
 
-## 6. Change log
+
+---
+
+# Part B: bike lane and transit coverage (v1.5, draft)
+
+Status: v1.5 draft (2026-11-20). Part A (sections 0–5) is unchanged. Examples are synthetic, as in Part A. Every stance label has examples on both sides, so the definitions do not favour either position.
+
+## 7. Scope and units (v1.5)
+
+### 7.1 `topic` (article; any of `crash`, `bike_lane`, `transit`)
+
+- **`bike_lane`:** the article is mainly about on-street cycling infrastructure in Toronto or policy on it: bike lanes, cycle tracks, the bike network plan, Bill 212 lane removals and the court cases about them.
+- **`transit`:** the article is mainly about public transit in Toronto: TTC or GO service, fares, funding, construction and new lines (Ontario Line, Eglinton Crosstown, Finch West).
+- **`crash`:** Part A scope.
+- "Mainly about" means the topic is named in the headline or is the subject of the first two body paragraphs. An article that mentions bike lanes once, in a crash story, is not `bike_lane`.
+- The Toronto rules from Part A apply (D-40, D-54, D-58).
+
+**Positive (`bike_lane`).** Headline "Council votes to keep the Bloor bike lanes" / lead "The province will begin removing the bike lanes on Yonge Street next week."
+**Negative (`bike_lane`).** A crash story whose last paragraph says "The street has a painted bike lane." / A story about bike theft.
+**Positive (`transit`).** Headline "TTC fares to rise 10 cents in January" / lead "The Eglinton Crosstown opened to riders on Sunday."
+**Negative (`transit`).** A crash story in which a TTC bus struck a pedestrian (that is `crash`) / A story about Highway 401 lane closures.
+
+### 7.2 Units
+
+- **Sentence labels** (`policy_frame`, stance labels) apply to every headline and body sentence of a `bike_lane` or `transit` article.
+- **Quote labels** (`source_role`) apply to each quote: a direct quote span, or indirect speech with a named or described speaker ("the councillor said").
+- `text_source` (section 3.1) is computed for every sentence. Rates are reported by `text_source` and never pooled across `quoted` and `newsroom`. A quoted speaker's stance is the speaker's, not the outlet's.
+
+## 8. Quote label
+
+### 8.1 `source_role`
+
+The role of the person or body quoted, from how the article identifies them.
+
+| Value | Definition | Positive | Negative |
+|---|---|---|---|
+| `politician_city` | Mayor, city councillor, or their office | "\"The lanes stay,\" Coun. Lee said." / "The mayor's office said the plan is under review." | A city staffer (`agency_staff`) / A provincial minister (`politician_province`) |
+| `politician_province` | Premier, MPP, provincial minister, or their office | "\"Drivers need relief,\" the transportation minister said." / "An MPP said the bill goes too far." | A federal MP (`other`) / A city councillor |
+| `agency_staff` | Non-elected staff of the City, TTC, Metrolinx or another public agency | "A TTC spokesperson said service will resume Monday." / "City staff estimate the work will cost $12 million." | A police officer (`police`) / The TTC chair, if a councillor (`politician_city`) |
+| `police` | Police officers or police spokespeople | "Const. Ali said officers will step up enforcement." | A paramedic (`other`) |
+| `vru_advocate` | Cyclists, pedestrians, or groups that advocate for them | "\"I ride this route every day,\" said a cyclist." / "Cycle Toronto called the ruling a relief." | A driver who also cycles but is quoted as a driver (`driver_group`) |
+| `driver_group` | Drivers, taxi or truck drivers, or groups that speak for them | "\"My commute doubled,\" one driver said." / "A drivers' association welcomed the bill." | A business owner talking about deliveries (`business`) |
+| `business` | Business owners, BIAs, chambers of commerce, developers | "The BIA says sales fell after the lanes went in." / "A café owner said customers now arrive by bike." | A business-school professor (`expert`) |
+| `expert` | Academics, planners, engineers, researchers speaking as experts | "A University of Toronto researcher said the data show fewer injuries." | A planner who works for the City (`agency_staff`) |
+| `resident` | Residents or transit riders speaking for themselves | "\"The bus never comes,\" said a rider at Kennedy station." / "A resident said the street is quieter now." | A resident who heads a cycling group (`vru_advocate`) |
+| `other` | Anyone else, including federal politicians, courts, unions and paramedics | "The judge wrote that the removal violates the Charter." | Any of the above |
+| `unknown` | The article gives no role | "\"It's a mess,\" one person said." | Any of the above |
+
+Decision rules:
+- Use the role the article gives in that quote. If a person has two roles, use the one the article states next to the quote.
+- Court rulings are `other`; v1.5 reports court quotes separately in the Bill 212 timeline.
+- `agency_staff` is added to the PLAN.md list because transit stories quote TTC and Metrolinx staff often, and they fit no listed role (D-63).
+
+## 9. Sentence labels (v1.5)
+
+### 9.1 `policy_frame`
+
+The main frame of the sentence, from the Policy Frames Codebook (Boydstun et al.). Five frames are kept; the rest collapse into `other`. Use `none` when the sentence has no policy content (event detail, scheduling, attribution).
+
+| Value | Definition | Positive | Negative |
+|---|---|---|---|
+| `economic` | Costs, funding, budgets, business revenue, jobs | "Removing the lanes will cost the province $48 million." / "The fare increase will raise $30 million a year." | "The lanes opened in 2023." (`none`) |
+| `safety` | Injury, death, crash risk, personal security | "Injuries on the street fell after the lanes were built." / "Riders say they feel unsafe on late-night buses." | "Traffic slowed during construction." (`quality_of_life`) |
+| `quality_of_life` | Travel time, congestion, convenience, noise, daily life | "Drivers say the commute now takes 20 minutes longer." / "The new line will cut travel times for riders in the east end." | "The project is over budget." (`economic`) |
+| `political` | Elections, party positions, government action as political conflict, jurisdiction between city and province | "The premier campaigned on removing the lanes." / "Council and the province are at odds over the plan." | "The court ruled the removal unconstitutional." (`legality`) |
+| `legality` | Laws, courts, Charter rights, regulations, legal challenges | "The court ruled that the removal violates the Charter." / "The bill exempts the work from environmental assessment." | "The premier said he will keep his promise." (`political`) |
+| `other` | Any other Boydstun frame: capacity and resources, morality, fairness, policy evaluation, public opinion, cultural identity, external regulation | "A poll found 55 per cent of residents support the plan." (public opinion) | Any of the above |
+| `none` | No policy content | "Work begins Monday at 7 a.m." / "She spoke at a news conference." | Any of the above |
+
+Decision rule: when a sentence carries two frames, use the one in the main clause.
+
+### 9.2 Stance labels
+
+Each stance label names one target. A sentence gets a value for every target; most sentences are `none` for most targets. Stance is the position the sentence expresses or reports as its own claim. Reporting that someone else holds a position, in neutral words, is `none` for a newsroom sentence ("The province says the lanes slow traffic" is `none`; the quote itself, if quoted, carries the stance).
+
+#### 9.2.1 `stance_infrastructure` (`support` | `oppose` | `none`): toward cycling infrastructure
+
+| Value | Positive | Negative |
+|---|---|---|
+| `support` | "\"These lanes save lives,\" a cyclist said." / "The lanes have made the street safer for everyone." | "The lanes cost $5 million." (`none`, a fact without evaluation) |
+| `oppose` | "\"The lanes have choked this street,\" a driver said." / "The lanes have been a disaster for local shops." | "The province plans to remove the lanes." (`none`) |
+| `none` | "Council will vote on the lanes Thursday." / "The province says the lanes slow traffic." | Either positive above |
+
+#### 9.2.2 `stance_cyclists` (`positive` | `negative` | `none`): toward cyclists as people
+
+Kept separate from infrastructure because coverage can favour cycling while criticizing cyclists (Rissel et al. 2010).
+
+| Value | Positive | Negative |
+|---|---|---|
+| `positive` | "Most cyclists follow the rules and just want to get home safely." / "Cyclists have as much right to the road as anyone." | "A cyclist was struck at the intersection." (`none`) |
+| `negative` | "Cyclists blow through red lights here every day." / "\"They think the road belongs to them,\" a driver said of cyclists." | "Police issued tickets to cyclists and drivers." (`none`) |
+| `none` | "About 6,000 cyclists use the lanes each day." / "Cycle Toronto represents riders." | Either positive above |
+
+#### 9.2.3 `stance_transit` (`support` | `oppose` | `none`): toward transit projects, funding or service expansion
+
+Complaints about service quality alone are `none` here; they usually carry the `quality_of_life` frame.
+
+| Value | Positive | Negative |
+|---|---|---|
+| `support` | "\"The city needs this line,\" a resident said." / "The extension will finally give the east end real transit." | "The line opens in 2031." (`none`) |
+| `oppose` | "\"This subway is a waste of money,\" a councillor said." / "The project will tear up the neighbourhood for years for little gain." | "The project is behind schedule." (`none`) |
+| `none` | "The TTC board meets Tuesday." / "Buses were delayed by 20 minutes." | Either positive above |
+
+### 9.3 Feature, not a label
+
+`loaded_language` is the score of `mediabiasgroup/da-roberta-babe-ft` on each sentence. It is reported as a descriptive feature next to the stance results, never as a stance label or labeling function. It was trained on US political news and does not measure stance on bike lanes or transit.
+
+
+## Change log
 
 - v1.0 (2026-11-19): "hit-and-run" added as a collision noun (D-31).
 - v1.0 (2026-11-19): resolved all draft flags (D-01 to D-17); added "accident" as a collision noun, the `vru_sentence` unit, `thematic_cue`, `attributed`, `driver_hta_charge`; extended the impact verb list.
+- v1.5 draft (2026-11-20): added Part B (sections 7–9): `topic`, `source_role` (with `agency_staff`, D-63), `policy_frame`, `stance_infrastructure`, `stance_cyclists`, `stance_transit`, and the `loaded_language` feature. Part A unchanged.
