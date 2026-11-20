@@ -37,8 +37,9 @@ ELSEWHERE_RE = re.compile(
     rf"\b(?:{_US_STATES}|U\.S\.|United States|Quebec|British Columbia|B\.C\.|Alberta"
     r"|Saskatchewan|Manitoba|Nova Scotia|New Brunswick|Newfoundland|Prince Edward Island"
     r"|England|U\.K\.|France|Germany|Australia|India|China|Mexico|Niagara)(?![a-z])"
-    r"|\b[A-Z][a-z]+(?: [A-Z][a-z]+)?, Ont\."
+    r"|\b[A-Z][a-z]+(?: [A-Z][a-z]+)?, (?:Ont|Que)\."
 )
+GLOBAL_SECTION_RE = re.compile(r" - ([^|]+?) \| Global")  # "Title - Okanagan | Globalnews.ca"
 WIRE_RE = re.compile(r"Associated Press|\(AP\)|\bAP\b|Reuters")
 TORONTO_SIGNAL_RE = re.compile(
     r"Toronto|\bTPS\b|\bTTC\b|Etobicoke|Scarborough|North York|East York"
@@ -102,7 +103,11 @@ def is_toronto(title: str, text: str, local: bool = False) -> bool:
     if OTHER_CITY_RE.search(lead):
         return False
     if not local:
-        return "Toronto" in blob
+        # D-58: a non-Toronto regional section, or a place elsewhere in the lead, is out.
+        section = GLOBAL_SECTION_RE.search(title)
+        if section and section.group(1).strip() != "Toronto":
+            return False
+        return "Toronto" in blob and not (section is None and ELSEWHERE_RE.search(lead))
     # Local sections also carry wire copy (D-54).
     if TORONTO_SIGNAL_RE.search(blob):
         return True

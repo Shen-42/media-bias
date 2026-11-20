@@ -158,3 +158,12 @@ def test_bare_person_needs_to_be_struck():
     assert not is_crash_article(active, "Man struck vehicle", "vehicle")
     ran_over = ["The driver ran over a woman in the parking lot."]
     assert is_crash_article(ran_over, "Woman run over", "driver")
+
+
+def test_national_outlet_section_and_place_elsewhere():
+    # D-58: Global titles name their regional section; page chrome can mention Toronto.
+    text = "A cyclist was struck. Toronto | Okanagan | Winnipeg"
+    assert not is_toronto("Kelowna RCMP investigate collision - Okanagan | Globalnews.ca", text)
+    assert is_toronto("Cyclist struck in North York - Toronto | Globalnews.ca", text)
+    amqui = "Residents of Amqui, Que. gathered after the crash. Toronto"
+    assert not is_toronto("How residents in Amqui, Que. are rallying | Globalnews.ca", amqui)
