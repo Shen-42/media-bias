@@ -25,16 +25,21 @@ Autonomous run of Phases 0–3. Updated after each task. A new session resumes f
 - Jobs started before this change (police, CityNews fetch, CTV discovery) run old code; the retry pass in Next step 1 covers them. Failures so far: 0.
 
 ## Running in background (detached; logs in data/logs/). Times are CST.
-The Mac rebooted at ~11:47 on 2026-11-20; the eval-sample run had stopped at Qwen 200/1,590 (06:02). Resumed at 11:55 from the Qwen step (D-52).
-| Job | State at 2026-11-20 11:55 | ETA |
+The Mac rebooted at ~11:47 on 2026-11-20 and stopped the eval-sample run at Qwen 200/1,590 (D-52).
+Annotators then flagged out-of-scope articles: US wire stories on CityNews Toronto pages, car-only crashes, and wrong police-release links. Fixed in D-54 (scope) and D-56 (release links); in-scope crash articles drop from 1,671 to about 940.
+| Job | State at 2026-11-20 12:40 | ETA |
 |---|---|---|
-| Qwen on pools → `eval.sample disagreement` → NLI + Qwen on new rows (log: pipeline_eval_resume.log, prints RESUME_DONE) | Qwen crash pool from 200/1,590 | ~13:30 |
-| Annotator subagents on dev (100 rows), test random (160 rows), second annotator (30 rows) | running; outputs to data/eval/out/ | ~12:30 |
+| crash → dedupe → overlap → coref on the new scope (log: rescope.log, prints SCOPE_DONE) | running | ~13:15 |
+
+## Eval labels
+- Annotated and merged (claude-subagent): dev 100 rows; test random 160 rows; second annotator 30 test crash rows (`eval/test_crash_annotator2.csv`).
+- These rows predate the rescope. `eval.sample topup` drops rows now out of scope and adds random replacements (D-55).
 
 ## Next
-1. Annotator subagents (~1 h, ~12:30): codebook.md + packets only → eval/dev_crash.csv, eval/test_crash.csv, eval/test_crash_annotator2.csv (30 rows).
-2. `./run_pipeline.sh` (~1 h, ~13:30): tune on dev, Snorkel, SetFit, article labels, scoring, aggregates.
-3. Fill docs/writeup.md TODOs and write SUMMARY.md (~1.5 h, ~15:00).
+1. After SCOPE_DONE: `python -m eval.sample topup`; annotate the topup packets (`data/eval/packet_topup_*`); merge.
+2. `python -m nlp.labeling.run --steps pools nli qwen` (pools rebuilt on new scope; Qwen cache reused), then `eval.sample disagreement`, `--steps nli qwen`, annotate the disagreement rows.
+3. `./run_pipeline.sh` (no flag): tune on dev, Snorkel, SetFit, article labels, scoring, aggregates.
+4. Fill docs/writeup.md TODOs and write SUMMARY.md.
 
 ## Blockers
 - None.
