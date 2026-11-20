@@ -76,6 +76,32 @@ def disagreement(cands: list[dict], n: int, rng: random.Random, excl: set[str]) 
     return pool[:n]
 
 
+def topup(
+    rows: list[dict],
+    cands: dict[str, list[dict]],
+    n_random: dict[str, int],
+    rng: random.Random,
+    excl: set[str],
+    taken: set[str],
+) -> tuple[list[dict], list[dict]]:
+    """Drop rows no longer in scope, then refill each set's random part to its size (D-55).
+
+    Kept rows keep their labels. New rows are random draws from the current scope, skipping
+    excluded IDs and anything already taken in either split.
+    """
+    in_scope = {name: {c["sentence_id"] for c in cs} for name, cs in cands.items()}
+    kept = [r for r in rows if r["sentence_id"] in in_scope.get(r["set"], set())]
+    taken = taken | {r["sentence_id"] for r in rows}
+    new: list[dict] = []
+    for name, n in n_random.items():
+        have = sum(r["set"] == name and r["sample"] == "random" for r in kept)
+        pool = [c for c in cands[name] if c["sentence_id"] not in taken]
+        for c in stratified(pool, max(n - have, 0), rng, excl):
+            new.append({**c, "set": name, "sample": "random"})
+            taken.add(c["sentence_id"])
+    return kept, new
+
+
 def candidates(con) -> dict[str, list[dict]]:
     rows = con.execute(
         "SELECT s.id, s.part, s.is_crash, s.release_sim, a.outlet, a.published, a.release_id"
@@ -137,7 +163,7 @@ def write_packets(con, rows: list[dict], split: str) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("stage", choices=["random", "disagreement"])
+    ap.add_argument("stage", choices=["random", "disagreement", "topup"])
     ap.add_argument("--db", default=None)
     args = ap.parse_args()
     con = db.connect(args.db)
@@ -155,6 +181,19 @@ def main() -> None:
                     taken.add(c["sentence_id"])
             write_csv(EVAL / f"{split}_crash.csv", rows)
             print(split, len(rows), "random rows")
+    elif args.stage == "topup":
+        taken = {
+            r["sentence_id"] for sp in ("test", "dev") for r in read_csv(EVAL / f"{sp}_crash.csv")
+        }
+        for split in ("test", "dev"):
+            rows = read_csv(EVAL / f"{split}_crash.csv")
+            sizes = {name: n for name, (n, _) in SIZES[split].items()}
+            kept, new = topup(rows, cands, sizes, rng, excl, taken)
+            taken |= {r["sentence_id"] for r in new}
+            write_csv(EVAL / f"{split}_crash.csv", kept + new)
+            write_packets(con, new, f"topup_{split}")
+            print(f"{split}: dropped {len(rows) - len(kept)} out-of-scope rows, added {len(new)}")
+        return
     else:
         from eval.triage import disagreement_counts
 

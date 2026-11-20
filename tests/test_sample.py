@@ -1,6 +1,6 @@
 import random
 
-from eval.sample import disagreement, excluded_ids, stratified
+from eval.sample import disagreement, excluded_ids, stratified, topup
 
 
 def _cands(n=200):
@@ -35,3 +35,22 @@ def test_excluded_file_parses(tmp_path):
     p = tmp_path / "x.txt"
     p.write_text("# comment\nabc\n\n")
     assert excluded_ids(p) == {"abc"}
+
+
+def test_topup_drops_out_of_scope_and_refills_random():
+    cands = {"crash": _cands(50), "context": [], "text_source": []}
+    in_scope = {c["sentence_id"] for c in cands["crash"]}
+    rows = [
+        {"sentence_id": "a0:b:0", "set": "crash", "sample": "random", "voice": "active"},
+        {"sentence_id": "gone:b:0", "set": "crash", "sample": "random", "voice": "nominal"},
+        {"sentence_id": "a1:b:0", "set": "crash", "sample": "random", "voice": ""},
+    ]
+    excl = {"a2:b:0"}
+    kept, new = topup(rows, cands, {"crash": 4}, random.Random(0), excl, taken={"a3:b:0"})
+    assert [r["sentence_id"] for r in kept] == ["a0:b:0", "a1:b:0"]
+    assert kept[0]["voice"] == "active"  # labels survive
+    assert len(new) == 2
+    new_ids = {r["sentence_id"] for r in new}
+    assert new_ids <= in_scope
+    assert new_ids.isdisjoint({"a0:b:0", "a1:b:0", "a2:b:0", "a3:b:0"})
+    assert all(r["sample"] == "random" and r["set"] == "crash" for r in new)
