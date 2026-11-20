@@ -38,3 +38,21 @@ def test_fetch_tiers():
     assert fetch_tier("https://x.ca/2023/01/02/woman-71-struck-by-falling-pole/") == 1
     assert fetch_tier("https://x.ca/2023/01/02/fatal-crash-on-highway-401/") == 2
     assert fetch_tier("https://x.ca/2023/01/02/food-prices-hit-record-high/") is None
+
+
+def test_topic_hint_bike_lane_broader_slugs():
+    # D-61: bike lane stories whose slug never says "bike-lane".
+    for slug in [
+        "ford-government-to-remove-bloor-yonge-university-lanes",
+        "toronto-cycling-network-plan-approved",
+        "court-strikes-down-reducing-gridlock-act-provisions",
+        "protected-lanes-on-danforth-to-stay",
+        "city-expands-bikeway-network",
+    ]:
+        assert topic_hint(f"https://x.ca/2025/01/01/{slug}/") == "bike_lane", slug
+
+
+def test_topic_hint_bike_lane_does_not_take_crashes_or_highways():
+    assert topic_hint("https://x.ca/2025/01/01/cyclist-killed-on-bloor/") == "crash"
+    assert topic_hint("https://x.ca/2025/01/01/highway-401-express-lanes-closed/") is None
+    assert topic_hint("https://x.ca/2025/01/01/cycling-team-wins-race/") is None

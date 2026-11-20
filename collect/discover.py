@@ -34,7 +34,12 @@ def fetch_tier(url: str) -> int | None:
     return None
 
 
-BIKE_LANE_SLUG = re.compile(r"bike-lane|bill-212|cycle-track|cycling-infrastructure")
+BIKE_LANE_SLUG = re.compile(
+    r"bike-lane|bill-212|cycle-track|cycling-infrastructure|bikeway|bike-network|bike-route"
+    r"|cycling-(?:network|plan|lanes?|route|grid|safety)|reducing-gridlock|gridlock-act"
+    r"|(?:bloor|yonge|university|danforth|avenue-road|queens-park)[a-z-]*-lanes"
+    r"|(?:protected|separated|cycling)-lanes?"
+)  # D-61: slugs that name the lanes without "bike-lane"
 TRANSIT_SLUG = re.compile(r"\bttc\b|-ttc-|transit|subway|-lrt|crosstown|metrolinx")
 LOC_RE = re.compile(r"<loc>\s*([^<\s]+)\s*</loc>(?:\s*<lastmod>\s*([^<\s]+)\s*</lastmod>)?")
 URL_DATE_RE = re.compile(r"/(20\d\d)/(\d\d)/(\d\d)/")
@@ -86,10 +91,13 @@ def _sitemaps_done(con) -> set[str]:
     return {r[0] for r in con.execute("SELECT url FROM sitemaps_done")}
 
 
+RESCAN = False  # set by --rescan: re-read finished sitemaps, add only new URLs (D-61)
+
+
 def _walk(f: Fetcher, con, outlet: str, maps: list[str], start: str, end: str, keep=None) -> None:
     """Fetch each sitemap once. Finished ones are recorded so a rerun resumes; a failed one is
     logged and left for the rerun instead of aborting the outlet."""
-    done = _sitemaps_done(con)
+    done = set() if RESCAN else _sitemaps_done(con)
     failed = 0
     for sm in maps:
         if sm in done:
@@ -156,7 +164,10 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("outlet", choices=OUTLETS)
     ap.add_argument("--db", default=None)
+    ap.add_argument("--rescan", action="store_true", help="re-read finished sitemaps")
     args = ap.parse_args()
+    global RESCAN
+    RESCAN = args.rescan
     cfg = config.load()
     o = cfg["outlets"][args.outlet]
     f = Fetcher(delays={o["domain"]: o["crawl_delay_s"]})
