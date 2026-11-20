@@ -312,6 +312,9 @@ Decision rules:
 - Use the role the article gives in that quote. If a person has two roles, use the one the article states next to the quote.
 - Court rulings are `other`; v1.5 reports court quotes separately in the Bill 212 timeline.
 - `agency_staff` is added to the PLAN.md list because transit stories quote TTC and Metrolinx staff often, and they fit no listed role (D-63).
+- A body speaking as itself takes the role of its people: "the Ministry of Transportation" or "the province" is `politician_province`; "the city" or a City notice is `agency_staff`; a court ruling or decision is `other` (D-66).
+- Opposition MPPs and party critics are `politician_province`. Ride-hail drivers are `driver_group` (D-66).
+- A bare surname takes the role the article gives that person at first mention (D-66).
 
 ## 9. Sentence labels (v1.5)
 
