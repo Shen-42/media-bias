@@ -72,8 +72,8 @@ num_ctx = 4096
 
 [matching]
 # dev-tuned: cosine similarity and char 5-gram Jaccard for police_matched
-embed_threshold = 0.80
-char_threshold = 0.30
+embed_threshold = 0.6
+char_threshold = 0.2
 release_window_days = 3
 
 [eval]

@@ -1,6 +1,6 @@
 # Related work: prior studies, labels, and rates
 
-Status: skeleton. Every number below comes from PLAN.md and has not yet been checked against the paper; a "?" in the Verified column means it still needs checking. Blank cells mean unknown. Do not fill a rate without a page or table reference.
+Status: partly verified. Ralph et al. (2019) was checked against the paper on 2026-11-20. Fevyer & Aldred (2022) could not be read (open copy returned HTTP 403). Other numbers come from PLAN.md and have not been checked; a "?" in the Verified column means it still needs checking. Blank cells mean unknown. Do not fill a rate without a page or table reference.
 
 The last column says how each study compares with this project, as CLAUDE.md requires. Fill the label columns while reading each paper, and map each label to the codebook dimension it matches (focus, agency, voice, language, narrative framing).
 
@@ -8,7 +8,7 @@ The last column says how each study compares with this project, as CLAUDE.md req
 
 | Study | Country | Sample | Unit | Labels used | Rates reported | Verified | Relation to this project |
 |---|---|---|---|---|---|---|---|
-| Ralph, Iacobucci, Thigpen & Goddard (2019) | US | 200 local news articles | | Source of the sentence-level codebook; labels to list | | ? | Same sentence-level dimensions, coded by hand on a sample. This project codes a full corpus automatically and adds the police release comparison. |
+| Ralph, Iacobucci, Thigpen & Goddard (2019), TRR 2673(2) | US | 200 local news articles (100 pedestrian, 100 cyclist), Feb–Mar 2018, hand-coded (p. 665) | Sentence (focus, agency, object-based language, sentence types); article (counterfactuals, thematic framing, crash term) | Focus, agency (voice), object-based language (driver_reference), counterfactuals (vru_conduct_detail), thematic framing, "accident" | One-third of crash sentences had no agent; in agentive sentences the VRU was the focus 74%; object-based language 81% when a driver or vehicle was mentioned; driver absent from the article 27% (p. 667). "A VRU was hit by a car" 40% of body sentences, 29% of titles (p. 667). Counterfactuals in one-third of articles; thematic elements in 16% (p. 668). "Accident" 47% of body sentences, 11% of titles (p. 669). | Yes (2026-11-20, author PDF) | Same dimensions, coded by hand on a two-month US sample. This project codes a full Toronto corpus with rules over 2023–2026 and adds the police release comparison. Agent and object-based rates are close to this project's; "accident" is far rarer here (docs/writeup.md). |
 | Goddard, Ralph, Thigpen & Iacobucci (2019) | US | 999 readers (experiment) | Reader response | Manipulated: pedestrian- vs. driver-focused language; episodic vs. thematic framing | | ? | Tests effects on readers. This project does not test effects; it measures how often the tested patterns occur. |
 | German replication of Goddard et al. | Germany | | | | | ? | Citation still needed. |
 | Fevyer & Aldred (2022), *Mobilities* | UK (London, *Evening Standard*, 2012–2019) | | | Driver reference (person vs. vehicle); exceptional ("rogue") drivers | | ? | One outlet. Source of `driver_exceptional`. This project compares several outlets. |

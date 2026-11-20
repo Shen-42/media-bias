@@ -24,22 +24,17 @@ Autonomous run of Phases 0–3. Updated after each task. A new session resumes f
 - Fetcher waits out network outages (up to 2 h) instead of failing a run of URLs. Discovery skips and logs failed sitemaps, records finished ones, and treats non-200 as failed.
 - Jobs started before this change (police, CityNews fetch, CTV discovery) run old code; the retry pass in Next step 1 covers them. Failures so far: 0.
 
-## Running in background (detached; logs in data/logs/). Times are CST.
-The Mac rebooted at ~11:47 on 2026-11-20 and stopped the eval-sample run at Qwen 200/1,590 (D-52).
-Annotators then flagged out-of-scope articles: US wire stories on CityNews Toronto pages, car-only crashes, and wrong police-release links. Fixed in D-54 (scope) and D-56 (release links); in-scope crash articles drop from 1,671 to about 940.
-| Job | State at 2026-11-20 12:00 | ETA |
-|---|---|---|
-| crash → dedupe → overlap → coref on the new scope (log: rescope.log, prints SCOPE_DONE) | running | ~13:15 |
+## Phase 3 run (finished 2026-11-20)
+- Rescope after annotator findings (D-54, D-56, D-58): 942 in-scope articles, 3,114 crash sentences, 218 release-linked.
+- Eval: dev 100 rows and test 240 rows (160 random + 80 disagreement) labeled by claude-subagent; out-of-scope rows replaced (D-55); second annotator 30 rows (kappa 1.0 on 26 crash rows).
+- Pipeline: tune (dev macro-F1 0.915, thresholds embed 0.6 / char 0.2), Snorkel, SetFit, article labels, scoring, aggregates. Offline model loading (D-59).
+- docs/writeup.md filled; docs/related-work.md has verified Ralph et al. (2019) rates; SUMMARY.md written.
+- CLAUDE.md untracked and removed from git history (D-57).
 
-## Eval labels
-- Annotated and merged (claude-subagent): dev 100 rows; test random 160 rows; second annotator 30 test crash rows (`eval/test_crash_annotator2.csv`).
-- These rows predate the rescope. `eval.sample topup` drops rows now out of scope and adds random replacements (D-55).
-
-## Next
-1. After SCOPE_DONE: `python -m eval.sample topup`; annotate the topup packets (`data/eval/packet_topup_*`); merge.
-2. `python -m nlp.labeling.run --steps pools nli qwen` (pools rebuilt on new scope; Qwen cache reused), then `eval.sample disagreement`, `--steps nli qwen`, annotate the disagreement rows.
-3. `./run_pipeline.sh` (no flag): tune on dev, Snorkel, SetFit, article labels, scoring, aggregates.
-4. Fill docs/writeup.md TODOs and write SUMMARY.md.
+## Next (v1 is done; these are follow-ups, not started)
+1. Trace why Global's in-scope count drops after mid-2024.
+2. Revise the codebook for the gaps the annotators found (charge names with "accident", bare person nouns, general statements, emergency vehicles, sentence-level VRU scope), then relabel.
+3. Rework the fuzzy-label models on dev only; SetFit and Snorkel trailed single labeling functions on test.
 
 ## Blockers
 - None.
