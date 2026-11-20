@@ -4,6 +4,7 @@
 #   python -m collect.discover {citynews,ctv,global}; python -m collect.fetch {outlet}
 #   python -m collect.police
 set -euo pipefail
+export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1  # pinned models are cached (D-59)
 PY=${PY:-.venv/bin/python}
 step() { echo "== $*"; caffeinate -i "$PY" -m "$@"; }
 
