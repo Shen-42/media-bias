@@ -51,7 +51,6 @@ d91dfd8373ff957c:b:9,context,random,ctv,2026,body,,,,,,false,false,,claude-subag
 42dbc00b6a9594d7:b:11,context,random,ctv,2026,body,,,,,,false,false,,claude-subagent
 172a9e905d7d7451:b:7,context,random,global,2023,body,,,,,,false,false,,claude-subagent
 10421bba2a363881:b:0,context,random,global,2023,body,,,,,,false,false,,claude-subagent
-d4b5d7b8cb03aa25:b:33,context,random,global,2023,body,,,,,,false,false,,claude-subagent
 8cacadbf2168d21a:b:0,context,random,global,2023,body,,,,,,false,false,,claude-subagent
 dbb94c81b12fb4b2:b:1,context,random,global,2023,body,,,,,,false,false,,claude-subagent
 36bc9ee06cdef07f:b:0,context,random,global,2024,body,,,,,,false,false,,claude-subagent
@@ -106,7 +105,6 @@ a0adc516aea4c830:b:5,crash,random,ctv,2025,body,not_crash,not_crash,not_crash,no
 fe61b3ed2fd0b9cc:b:0,crash,random,ctv,2026,body,nominal,vehicle,vru,false,false,,,,claude-subagent
 1e3c29d10092c1cb:h:0,crash,random,ctv,2026,headline,passive_with_agent,vehicle,vru,false,false,,,,claude-subagent
 42dbc00b6a9594d7:b:0,crash,random,ctv,2026,body,passive_with_agent,person,vru,false,false,,,,claude-subagent
-7fcd2f5d4ca11436:h:0,crash,random,global,2023,headline,nominal,absent,other,false,false,,,,claude-subagent
 063205fc00e34612:b:0,crash,random,global,2023,body,passive_with_agent,vehicle,vru,false,false,,,,claude-subagent
 db2d45a67bdb6e3c:b:0,crash,random,global,2023,body,passive_with_agent,vehicle,vru,false,false,,,,claude-subagent
 acfaa4ef6140473c:b:1,crash,random,global,2023,body,active,vehicle,vehicle,false,false,,,,claude-subagent
@@ -159,3 +157,5 @@ a181ffe4b7284306:b:6,text_source,random,global,2023,body,,,,,,,,newsroom,claude-
 e59d05479f612b97:b:1,text_source,random,ctv,2026,body,,,,,,,,newsroom,claude-subagent
 b6a0d4f6acf5fa14:b:3,text_source,random,global,2023,body,,,,,,,,newsroom,claude-subagent
 cad56f6b1ba77111:b:17,text_source,random,citynews,2023,body,,,,,,,,newsroom,claude-subagent
+3ed82f1658d058ba:b:1,crash,random,citynews,2024,body,passive_with_agent,vehicle,vru,false,false,,,,claude-subagent
+303d6b305c146106:b:8,context,random,citynews,2025,body,,,,,,false,false,,claude-subagent
