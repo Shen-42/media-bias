@@ -1,0 +1,13 @@
+sentence_id,set,sample,outlet,year,part,voice,driver_reference,focus,vru_as_actor,accident_term,vru_conduct_detail,thematic_cue,text_source,annotator
+ec75b38c54636b84:b:6,crash,random,citynews,2023,body,not_crash,not_crash,not_crash,not_crash,not_crash,,,,claude-subagent-2
+5afb0c3ae9b65ec2:h:0,crash,random,citynews,2023,headline,agentless_passive,absent,vru,false,false,,,,claude-subagent-2
+1355a2e4f30e0b07:b:3,crash,random,citynews,2023,body,active,vehicle,vehicle,false,false,,,,claude-subagent-2
+765c4256945d233d:b:13,crash,random,citynews,2023,body,agentless_passive,absent,vru,false,false,,,,claude-subagent-2
+03c816ef33f1bdcf:b:0,crash,random,citynews,2023,body,passive_with_agent,vehicle,vru,false,false,,,,claude-subagent-2
+209750006e7a67b0:h:0,crash,random,citynews,2024,headline,nominal,absent,vru,false,false,,,,claude-subagent-2
+30741ee661791a61:h:0,crash,random,citynews,2024,headline,passive_with_agent,vehicle,vru,false,false,,,,claude-subagent-2
+c762bcda0fc27146:b:0,crash,random,citynews,2024,body,passive_with_agent,vehicle,vru,false,false,,,,claude-subagent-2
+54c69e0de0af103c:b:0,crash,random,citynews,2024,body,passive_with_agent,vehicle,vru,false,false,,,,claude-subagent-2
+ce7dc727c2bd8ec6:b:1,crash,random,citynews,2024,body,passive_with_agent,vehicle,vru,false,false,,,,claude-subagent-2
+96a40c7358809242:b:0,crash,random,citynews,2025,body,passive_with_agent,vehicle,vru,false,false,,,,claude-subagent-2
+164e474248e4c730:h:0,crash,random,citynews,2025,headline,nominal,absent,vru,false,false,,,,claude-subagent-2
