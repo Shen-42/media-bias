@@ -25,11 +25,11 @@ Autonomous run of Phases 0–3. Updated after each task. A new session resumes f
 - Jobs started before this change (police, CityNews fetch, CTV discovery) run old code; the retry pass in Next step 1 covers them. Failures so far: 0.
 
 ## Running in background (detached; logs in data/logs/). Times are CST.
-| Job | State at 2026-11-20 05:30 | ETA |
+The Mac rebooted at ~11:47 on 2026-11-20; the eval-sample run had stopped at Qwen 200/1,590 (06:02). Resumed at 11:55 from the Qwen step (D-52).
+| Job | State at 2026-11-20 11:55 | ETA |
 |---|---|---|
-| `./run_pipeline.sh --eval-sample` (log: pipeline_eval_sample.log) | sentences for 2,373 new CityNews articles, then crash filter, dedupe, overlap, coref, eval sampling, NLI and Qwen on pools | 2026-11-20 ~11:30 |
-
-Collection finished 2026-11-20 05:00 with no failed fetches. Crash-topic articles: CityNews 4,063, Global 4,818, CTV 1,449. 16 CTV daily sitemaps return 504 on every try; 14 predate CTV's first article (D-51).
+| Qwen on pools → `eval.sample disagreement` → NLI + Qwen on new rows (log: pipeline_eval_resume.log, prints RESUME_DONE) | Qwen crash pool from 200/1,590 | ~13:30 |
+| Annotator subagents on dev (100 rows), test random (160 rows), second annotator (30 rows) | running; outputs to data/eval/out/ | ~12:30 |
 
 ## Next
 1. Annotator subagents (~1 h, ~12:30): codebook.md + packets only → eval/dev_crash.csv, eval/test_crash.csv, eval/test_crash_annotator2.csv (30 rows).
