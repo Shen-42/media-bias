@@ -24,15 +24,45 @@ OTHER_CITY_RE = re.compile(
     r"|vancouver|calgary|london, ont|kitchener|waterloo|windsor|clarington|georgina)\b",
     re.I,
 )
+_US_STATES = (
+    "Alabama|Alaska|Arizona|Arkansas|California|Colorado|Connecticut|Delaware|Florida|Georgia"
+    "|Hawaii|Idaho|Illinois|Indiana|Iowa|Kansas|Kentucky|Louisiana|Maine|Maryland"
+    "|Massachusetts|Michigan|Minnesota|Mississippi|Missouri|Montana|Nebraska|Nevada"
+    "|New Hampshire|New Jersey|New Mexico|New York|North Carolina|North Dakota|Ohio|Oklahoma"
+    "|Oregon|Pennsylvania|Rhode Island|South Carolina|South Dakota|Tennessee|Texas|Utah"
+    "|Vermont|Virginia|Washington|West Virginia|Wisconsin|Wyoming"
+)
+# A place outside Toronto in the lead of a local-section article (D-54).
+ELSEWHERE_RE = re.compile(
+    rf"\b(?:{_US_STATES}|U\.S\.|United States|Quebec|British Columbia|B\.C\.|Alberta"
+    r"|Saskatchewan|Manitoba|Nova Scotia|New Brunswick|Newfoundland|Prince Edward Island"
+    r"|England|U\.K\.|France|Germany|Australia|India|China|Mexico|Niagara)(?![a-z])"
+    r"|\b[A-Z][a-z]+(?: [A-Z][a-z]+)?, Ont\."
+)
+WIRE_RE = re.compile(r"Associated Press|\(AP\)|\bAP\b|Reuters")
+TORONTO_SIGNAL_RE = re.compile(
+    r"Toronto|\bTPS\b|\bTTC\b|Etobicoke|Scarborough|North York|East York"
+)
 VRU_WORD_RE = re.compile(r"\b(pedestrian|cyclist|bicyclist|e-?bike|bike|bicycle|scooter)s?\b", re.I)
 # A person struck by a vehicle with no occupant cue is treated as a pedestrian (D-39).
 PERSON_RE = re.compile(
-    r"\b(?:man|woman|boy|girl|child|senior|teen|teenager|person|toddler|student|\d+-year-old)s?\b",
+    r"\b(?:man|woman|men|women|people|boy|girl|child|senior|teen|teenager|person|toddler"
+    r"|student|\d+-year-old)s?\b",
     re.I,
 )
 OCCUPANT_RE = re.compile(
     r"driver of|his car|her car|their car|passenger|behind the wheel|inside the vehicle"
     r"|occupants?|motorcyclist",
+    re.I,
+)
+_PERSON = PERSON_RE.pattern[2:-2]
+_STRIKE = r"(?:struck|hit|run over|ran over|mowed down|pinned|dragged|killed by)"
+# D-54: the person must be the one struck: a passive strike verb after the person
+# ("a boy suffered injuries after he was hit") or an active one right before ("ran over a woman").
+STRUCK_PERSON_RE = re.compile(
+    rf"\b{_PERSON}\b[^.;]{{0,80}}?\b(?:was|were|been|being|is|are)\s+(?:\w+ly\s+)?{_STRIKE}\b"
+    rf"|\b{_PERSON}\b[^.;]{{0,20}}?\b(?:\w+ly\s+)?{_STRIKE}\s+(?:by|during|in|while|on|at)\b"
+    rf"|\b{_STRIKE}\b[^.;]{{0,25}}?\b{_PERSON}\b",
     re.I,
 )
 MOTOR_RE = re.compile(
@@ -71,7 +101,12 @@ def is_toronto(title: str, text: str, local: bool = False) -> bool:
     lead = f"{title}\n{text[:400]}"
     if OTHER_CITY_RE.search(lead):
         return False
-    return local or "Toronto" in blob
+    if not local:
+        return "Toronto" in blob
+    # Local sections also carry wire copy (D-54).
+    if TORONTO_SIGNAL_RE.search(blob):
+        return True
+    return not (ELSEWHERE_RE.search(lead) or WIRE_RE.search(text))
 
 
 def severity(title: str, text: str) -> str:
@@ -120,7 +155,7 @@ def is_crash_article(crash_sents: list[str], title: str, text: str) -> bool:
         return False
     joined = " ".join(crash_sents)
     vru = VRU_WORD_RE.search(joined) or (
-        PERSON_RE.search(joined) and not OCCUPANT_RE.search(joined)
+        STRUCK_PERSON_RE.search(joined) and not OCCUPANT_RE.search(joined)
     )
     return bool(vru and MOTOR_RE.search(f"{title} {text}"))
 

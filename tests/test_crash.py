@@ -112,3 +112,41 @@ def test_person_struck_counts_as_pedestrian():
     assert not is_crash_article(
         ["The driver of a car and his passenger were hit by a truck."], "Crash", "truck"
     )
+
+
+def test_local_outlet_wire_story_elsewhere_is_not_toronto():
+    # D-54: Toronto-section pages carry wire copy; a place elsewhere in the lead or a wire
+    # credit with no Toronto signal anywhere means the story is not local.
+    us = "PHOENIX (AP) — A pickup struck a group of bicyclists in Arizona, killing two."
+    assert not is_toronto("2 killed after pickup strikes bicyclists", us, local=True)
+    bc = "A stroller was hit and dragged by a vehicle in Squamish, B.C., on Monday."
+    assert not is_toronto("Baby lives after stroller hit", bc, local=True)
+    ont = "A pedestrian died after a crash in East Gwillimbury, Ont., police say."
+    assert not is_toronto("One dead in East Gwillimbury", ont, local=True)
+    wire = "A man was struck by a car on Tuesday. — The Associated Press"
+    assert not is_toronto("Man struck", wire, local=True)
+
+
+def test_local_outlet_toronto_signal_wins_over_elsewhere():
+    text = "A cyclist from Quebec was struck in Scarborough on Monday, police said."
+    assert is_toronto("Cyclist struck", text, local=True)
+    assert is_toronto("Woman struck in Leslieville", "A woman was hit by a driver.", local=True)
+
+
+def test_bare_person_needs_to_be_struck():
+    # D-54: the D-39 fallback needs the person to be the one hit, not a car occupant
+    # mentioned near a collision noun.
+    car_only = ["A man was critically injured in a three-vehicle crash in Rexdale."]
+    assert not is_crash_article(car_only, "Man injured in 3-vehicle crash", "vehicle")
+    struck = ["A girl, 14, was struck by a truck in Rexdale."]
+    assert is_crash_article(struck, "Girl struck by truck", "truck")
+    after = ["A 14-year-old boy suffered life-threatening injuries after he was hit by a car."]
+    assert is_crash_article(after, "Boy hit by car", "car")
+    pole = ["A man was injured after a car hit a pole in Scarborough."]
+    assert not is_crash_article(pole, "Man injured in crash", "car")
+    headline = ["Man, 62, struck by TTC streetcar downtown dies in hospital"]
+    assert is_crash_article(headline, "Man struck", "streetcar")
+    active = ["Police say man struck vehicle with hatchet while yelling at driver"]
+    assert not is_crash_article(active, "Man struck vehicle", "vehicle")
+    ran_over = ["The driver ran over a woman in the parking lot."]
+    assert is_crash_article(ran_over, "Woman run over", "driver")
