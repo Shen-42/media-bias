@@ -31,7 +31,26 @@ Autonomous run of Phases 0–3. Updated after each task. A new session resumes f
 - docs/writeup.md filled; docs/related-work.md has verified Ralph et al. (2019) rates; SUMMARY.md written.
 - CLAUDE.md untracked and removed from git history (D-57).
 
-## Next (v1 is done; these are follow-ups, not started)
+## Phase 4 (v1.5), started 2026-11-20
+Done:
+- Model choice: Snorkel + SetFit for stance and frames (author, D-60). CLAUDE.md updated.
+- Codebook Part B draft (sections 7–9): topic, source_role, policy_frame, three stance targets, loaded_language feature (D-63); label mapping in docs/related-work.md.
+- Bill 212 timeline with sources (`analysis/timeline_bill212.csv`, D-64).
+- Fetch fix for non-crash topics (D-62); broader bike lane slugs and `--rescan` (D-61); topic tagger `nlp/topic.py` (D-65).
+
+Running (logs in data/logs/):
+| Job | Log | Then |
+|---|---|---|
+| Fetch bike_lane then transit URLs, per outlet | fetch_v15_<outlet>.log (prints FETCH_DONE) | rescan sitemaps with the broader slugs, fetch new bike_lane URLs (rescan_<outlet>.log, prints RESCAN_DONE) |
+
+Next:
+1. Source extraction: speaker + role rules for `source_role` (codebook 8.1), with tests.
+2. Labeling functions for `policy_frame` and the stance targets: lexicons, NLI hypotheses, Qwen prompt v1.5 (examples from codebook only).
+3. After fetching: sentences, Toronto filter, topic tags, text_source on v1.5 articles.
+4. v1.5 eval sample (dev and test, random + disagreement, plus a topic-precision sample); annotator subagents.
+5. Snorkel + SetFit; aggregates by outlet, text_source and Bill 212 period; dashboard view; write-up addendum.
+
+## v1 follow-ups (not started)
 1. Trace why Global's in-scope count drops after mid-2024.
 2. Revise the codebook for the gaps the annotators found (charge names with "accident", bare person nouns, general statements, emergency vehicles, sentence-level VRU scope), then relabel.
 3. Rework the fuzzy-label models on dev only; SetFit and Snorkel trailed single labeling functions on test.
