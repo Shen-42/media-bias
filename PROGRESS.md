@@ -27,7 +27,7 @@ Autonomous run of Phases 0–3. Updated after each task. A new session resumes f
 ## Running in background (detached; logs in data/logs/). Times are CST.
 The Mac rebooted at ~11:47 on 2026-11-20 and stopped the eval-sample run at Qwen 200/1,590 (D-52).
 Annotators then flagged out-of-scope articles: US wire stories on CityNews Toronto pages, car-only crashes, and wrong police-release links. Fixed in D-54 (scope) and D-56 (release links); in-scope crash articles drop from 1,671 to about 940.
-| Job | State at 2026-11-20 12:40 | ETA |
+| Job | State at 2026-11-20 12:00 | ETA |
 |---|---|---|
 | crash → dedupe → overlap → coref on the new scope (log: rescope.log, prints SCOPE_DONE) | running | ~13:15 |
 
