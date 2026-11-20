@@ -26,6 +26,16 @@ def extract(html: str, url: str) -> dict | None:
     return {"title": d.get("title"), "published": (d.get("date") or "")[:10], "text": d.get("text")}
 
 
+def fetch_order(urls: list[str], topic: str) -> tuple[list[str], list[str]]:
+    """Crash URLs: tier 1 first, tier 2 after, others are noise (D-32, D-38).
+    Other topics keep discovery order: the crash tiers do not apply to them."""
+    if topic != "crash":
+        return list(urls), []
+    noise = [u for u in urls if fetch_tier(u) is None]
+    keep = sorted((u for u in urls if fetch_tier(u)), key=fetch_tier)
+    return keep, noise
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("outlet")
@@ -53,14 +63,12 @@ def main() -> None:
         " ORDER BY coalesce(url_date, lastmod)",
         (args.outlet, args.topic),
     ).fetchall()
-    # Tier 1 first, tier 2 after; slugs in neither tier are skipped as noise (D-32, D-38).
-    noise = [r[0] for r in rows if fetch_tier(r[0]) is None]
+    keep, noise = fetch_order([r[0] for r in rows], args.topic)
     con.executemany(
         "UPDATE discovered_urls SET status='skipped:slug_noise' WHERE url=?", [(u,) for u in noise]
     )
     con.commit()
-    rows = sorted((r for r in rows if fetch_tier(r[0])), key=lambda r: fetch_tier(r[0]))
-    rows = rows[: args.limit]
+    rows = [(u,) for u in keep][: args.limit]
     start, end = cfg["corpus"]["start"], cfg["corpus"]["end"]
     for n, (url,) in enumerate(rows):
         status = "fetched"
