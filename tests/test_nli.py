@@ -12,6 +12,10 @@ def test_every_codebook_label_has_hypotheses():
         "accident_term",
         "vru_conduct_detail",
         "thematic_cue",
+        "policy_frame",
+        "stance_infrastructure",
+        "stance_cyclists",
+        "stance_transit",
     }
     assert {v for v, _ in HYPOTHESES["voice"]} == {
         "active",
@@ -36,3 +40,10 @@ def test_nli_runs_on_device():
     con = db.connect(":memory:")
     s = NLI(con).scores("t1", "A cyclist was not wearing a helmet.", "vru_conduct_detail")
     assert 0 <= s["true"] <= 1
+
+
+def test_v15_hypotheses_match_codebook_values():
+    from nlp.labeling.lfs_v15 import V15_LABELS
+
+    for label, values in V15_LABELS.items():
+        assert [v for v, _ in HYPOTHESES[label]] == values

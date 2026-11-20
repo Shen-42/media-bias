@@ -43,4 +43,14 @@ def test_tasks_cover_all_labels():
         "accident_term",
         "vru_conduct_detail",
         "thematic_cue",
+        "policy_frame",
+        "stance_infrastructure",
+        "stance_cyclists",
+        "stance_transit",
     }
+
+
+def test_v15_task_matches_codebook_values():
+    from nlp.labeling.lfs_v15 import V15_LABELS
+
+    assert TASKS["v15"]["fields"] == V15_LABELS

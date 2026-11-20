@@ -45,10 +45,36 @@ HYPOTHESES: dict[str, list[tuple[str, str]]] = {
             "This sentence discusses road safety trends, statistics, road design, or policy.",
         ),
     ],
+    # v1.5 (codebook 9.1, 9.2)
+    "policy_frame": [
+        ("economic", "This sentence is about costs, funding, money, or business."),
+        ("safety", "This sentence is about safety, injuries, or deaths."),
+        ("quality_of_life", "This sentence is about traffic, commute times, or daily life."),
+        ("political", "This sentence is about politics, elections, or a government dispute."),
+        ("legality", "This sentence is about a law, a court case, or legal rights."),
+        ("other", "This sentence is about public opinion, fairness, or capacity."),
+        ("none", "This sentence states a time, place, or event with no policy content."),
+    ],
+    "stance_infrastructure": [
+        ("support", "This sentence speaks in favour of bike lanes."),
+        ("oppose", "This sentence speaks against bike lanes."),
+        ("none", "This sentence takes no position on bike lanes."),
+    ],
+    "stance_cyclists": [
+        ("positive", "This sentence describes cyclists favourably."),
+        ("negative", "This sentence describes cyclists unfavourably."),
+        ("none", "This sentence does not judge cyclists."),
+    ],
+    "stance_transit": [
+        ("support", "This sentence speaks in favour of a transit project or transit funding."),
+        ("oppose", "This sentence speaks against a transit project or transit funding."),
+        ("none", "This sentence takes no position on transit projects or funding."),
+    ],
 }
 
 CRASH_LABELS = ("voice", "driver_reference", "focus", "vru_as_actor", "accident_term")
 CONTEXT_LABELS = ("vru_conduct_detail", "thematic_cue")
+V15_LABELS = ("policy_frame", "stance_infrastructure", "stance_cyclists", "stance_transit")
 CACHE = """CREATE TABLE IF NOT EXISTS nli_cache (
     revision TEXT, hypothesis TEXT, sentence_id TEXT, score REAL,
     PRIMARY KEY (revision, hypothesis, sentence_id))"""

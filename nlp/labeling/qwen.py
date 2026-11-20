@@ -34,6 +34,23 @@ TASKS = {
         "prompt": "context_v1.txt",
         "fields": {"vru_conduct_detail": [True, False], "thematic_cue": [True, False]},
     },
+    "v15": {
+        "prompt": "v15_v1.txt",
+        "fields": {
+            "policy_frame": [
+                "economic",
+                "safety",
+                "quality_of_life",
+                "political",
+                "legality",
+                "other",
+                "none",
+            ],
+            "stance_infrastructure": ["support", "oppose", "none"],
+            "stance_cyclists": ["positive", "negative", "none"],
+            "stance_transit": ["support", "oppose", "none"],
+        },
+    },
 }
 BATCH = 8
 CACHE = """CREATE TABLE IF NOT EXISTS qwen_cache (
