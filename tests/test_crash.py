@@ -67,6 +67,14 @@ def test_link_release_needs_shared_streets():
     rel_bad = {"id": 2, "published": "2024-05-01", "streets": {"finch"}, "road_users": ["cyclist"]}
     assert link_release(art, [rel_bad, rel_ok])[0] == 1
     assert link_release(art, [rel_bad])[0] is None
+    # D-56: one shared street is not enough, even with the same VRU type on the same day.
+    rel_one = {
+        "id": 3,
+        "published": "2024-05-02",
+        "streets": {"bloor", "yonge"},
+        "road_users": ["cyclist"],
+    }
+    assert link_release(art, [rel_one])[0] is None
 
 
 def test_assign_crash_ids_groups_and_marks_follow_up():

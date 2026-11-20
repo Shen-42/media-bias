@@ -184,7 +184,7 @@ def link_release(art: dict, releases: list[dict]) -> tuple[int | None, float]:
         shared = len(a_streets & r["streets"])
         vru_match = bool(a_vru & set(r["road_users"]))
         score = shared + (0.5 if vru_match else 0) - 0.1 * max(gap, 0)
-        ok = shared >= 2 or (shared >= 1 and vru_match and abs(gap) <= 1)
+        ok = shared >= 2  # D-56: one shared street linked many wrong releases
         if ok and score > best_score:
             best, best_score = r["id"], score
     return best, best_score
