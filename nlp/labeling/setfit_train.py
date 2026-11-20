@@ -22,10 +22,14 @@ def training_set(texts: list[str], proba, seed: int = 0) -> tuple[list[str], lis
 
 def train(texts: list[str], labels: list[int]):
     from datasets import Dataset
+    from huggingface_hub import snapshot_download
     from setfit import SetFitModel, Trainer, TrainingArguments
 
     m = config.load()["models"]["setfit_base"]
-    model = SetFitModel.from_pretrained(m["name"], revision=m["revision"])
+    # Load the pinned snapshot by path: SetFit drops `revision` for inner loads, which
+    # fails in offline mode (D-59).
+    path = snapshot_download(m["name"], revision=m["revision"], local_files_only=True)
+    model = SetFitModel.from_pretrained(path)
     args = TrainingArguments(num_epochs=1, batch_size=16, num_iterations=10, seed=0)
     ds = Dataset.from_dict({"text": texts, "label": labels})
     Trainer(model=model, args=args, train_dataset=ds).train()
