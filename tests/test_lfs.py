@@ -26,7 +26,9 @@ def test_conduct_procedural():
 def test_nli_and_qwen_lfs():
     assert lfs.lf_conduct_nli(x("t", nli=0.9)) == YES
     assert lfs.lf_conduct_nli(x("t", nli=0.1)) == NO
-    assert lfs.lf_conduct_nli(x("t", nli=0.5)) == ABSTAIN
+    # between lo (0.2) and the dev-tuned cutoff from config (D-71): abstain
+    mid = (0.2 + lfs._hi("vru_conduct_detail")) / 2
+    assert lfs.lf_conduct_nli(x("t", nli=mid)) == ABSTAIN
     assert lfs.lf_conduct_nli(x("t")) == ABSTAIN
     assert lfs.lf_thematic_qwen(x("t", qwen="true")) == YES
     assert lfs.lf_thematic_qwen(x("t", qwen="false")) == NO
