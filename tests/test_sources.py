@@ -99,3 +99,24 @@ def test_first_mention_uses_nearest_cue():
         "Moss wrote that the law was arbitrary.",
     ]
     assert article_sources(sents)[0][2] == "other"
+
+
+def test_role_cues_v2():
+    assert role_of("officers") == "police"
+    assert role_of("TPS Superintendent Ana Kim") == "police"
+    assert role_of("the TTC's Chief Strategy Officer") == "agency_staff"  # not police
+    assert role_of("TTC Chair Sam Lee") == "politician_city"
+    assert role_of("Committee chair Ana Kim") == "politician_city"
+    assert role_of("Rogers spokesperson Tom Li") == "business"
+    assert role_of("Board of Trade president Ana Kim") == "business"
+    assert role_of("GO") == "agency_staff"
+    assert role_of("a transit user") == "resident"
+    assert role_of("a principal at a mobility consulting firm") == "expert"
+
+
+def test_document_speaker_takes_issuer_role():
+    sents = [
+        "Metrolinx released a report on the line's delays on Monday.",
+        "The report said the project is two years behind schedule.",
+    ]
+    assert article_sources(sents)[0][2] == "agency_staff"

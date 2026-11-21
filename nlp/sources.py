@@ -31,17 +31,26 @@ LEAD_RE = re.compile(
 
 # Checked in order; the first match wins (codebook 8.1 decision rules).
 ROLE_CUES = [
-    ("politician_city", r"\bCoun\.|\bcouncill?or\b|\bmayor\b|deputy mayor|city council\b"),
+    (
+        "politician_city",
+        r"\bCoun\.|\bcouncill?or\b|\bmayor\b|deputy mayor|city council\b"
+        r"|\b(?:TTC|committee|board) chair\b",  # TTC and committee chairs are councillors (D-77)
+    ),
     (
         "politician_province",
         r"\bPremier\b|\bMPP\b|\bminist(?:er|ry)\b|Queen's Park|provincial government|the province\b"
         r"|Ford government|\bNDP\b|\bLiberal\b|\bcritic\b|house leader|opposition",
     ),
-    ("police", r"\bConst\.|\bSgt\.|\bDet\.|\bInsp\.|\bpolice\b|\bofficer\b"),
+    (
+        "police",
+        r"\bConst\.|\bSgt\.|\bDet\.|\bInsp\.|\bpolice\b|\bTPS\b|\bSuperintendent\b|\bSupt\."
+        r"|(?-i:\b(?:police )?officers?\b)",  # lowercase only: "Chief ... Officer" is not police
+    ),
     (
         "agency_staff",
         r"\bTTC\b|\bMetrolinx\b|\bcity staff\b|^City staff|City of Toronto|transportation services"
-        r"|general manager|\bspokesperson for the city\b|\bthe city\b",
+        r"|general manager|\bspokesperson for the city\b|\bthe city\b|(?-i:\bGO\b)"
+        r"|(?-i:Chief \w+(?: \w+)* Officer)",
     ),
     (
         "vru_advocate",
@@ -51,18 +60,23 @@ ROLE_CUES = [
     (
         "expert",
         r"\bprofessor\b|\bresearcher\b|\bUniversity\b|\bplanner\b|\bengineer\b|\beconomist\b"
-        r"|\bexpert\b|\banalyst\b",
+        r"|\bexpert\b|\banalyst\b|\bconsult(?:ant|ing)\b",
     ),
     (
         "business",
         r"\bBIA\b|business (?:owner|association|improvement)|\bowner\b|Chamber of Commerce"
-        r"|\bmerchant|\bdeveloper\b|\brestaurant|\bowns\b|\bcaf[eé]\b|\bshop\b|\bstore\b",
+        r"|\bmerchant|\bdeveloper\b|\brestaurant|\bowns\b|\bcaf[eé]\b|\bshop\b|\bstore\b"
+        r"|Board of Trade|(?-i:\b(?:Rogers|Bell|Telus|Inc|Ltd|Corp)\b)|\bcompany\b",
     ),
     (
         "driver_group",
         r"\bdrivers?\b|\bmotorists?\b|\bCAA\b|\btaxi\b|\btruck(?:er|ing)\b|\bUber\b|\bLyft\b",
     ),
-    ("resident", r"\bresidents?\b|\briders?\b|\bcommuters?\b|\bneighbou?rs?\b|\bparent\b"),
+    (
+        "resident",
+        r"\bresidents?\b|\briders?\b|\bcommuters?\b|\bneighbou?rs?\b|\bparent\b"
+        r"|transit users?\b|\bpassengers?\b",
+    ),
     (
         "other",
         r"\bjudge\b|\bJustice\b|\bcourt\b|\bruling\b|\bunion\b|\bMP\b|\bparamedic|\bfirefighter",
@@ -73,6 +87,8 @@ TITLE_RE = re.compile(
     r"\b((?i:premier|mayor|councill?or|minister|professor)|Coun\.|MPP|Const\.|Sgt\.|Prof\.)"
     r"\s+(?:[A-Z][a-z]+\s+)?([A-Z][a-z]+)"
 )
+# A document speaks for whoever issued it ("The report said"; D-77).
+DOC_RE = re.compile(r"\b(?:report|statement|release|briefing note|memo|letter|notice)\b", re.I)
 EDGE_RE = re.compile(r"^(?:But|And|However|Still|Meanwhile|Instead)\b,?\s+|\s+(?:also|later|then)$")
 
 
@@ -130,7 +146,10 @@ def article_sources(sentences: list[str]) -> list[tuple[int, str, str]]:
         elif sp in titles:
             sp = titles[sp]
         role = role_of(sp)
-        if role == "unknown" and re.fullmatch(_NAME, sp):
+        doc = DOC_RE.search(sp)
+        if role == "unknown" and doc:
+            role = _first_mention_role(doc.group(0).lower(), sentences)
+        elif role == "unknown" and re.fullmatch(_NAME, sp):
             role = _first_mention_role(sp.split()[-1], sentences)
         out.append((i, sp, role))
         last = sp

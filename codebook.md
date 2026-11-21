@@ -321,6 +321,7 @@ Decision rules:
 - A body speaking as itself takes the role of its people: "the Ministry of Transportation" or "the province" is `politician_province`; "the city" or a City notice is `agency_staff`; a court ruling or decision is `other` (D-66).
 - Opposition MPPs and party critics are `politician_province`. Ride-hail drivers are `driver_group` (D-66).
 - A bare surname takes the role the article gives that person at first mention (D-66).
+- The TTC board chair and city committee chairs are councillors: `politician_city`. A document (report, statement, release, briefing note) takes the role of the body that issued it. A company spokesperson is `business` (D-77).
 
 ## 9. Sentence labels (v1.5)
 
