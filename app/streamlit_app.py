@@ -36,7 +36,26 @@ LABELS = {
     "thematic_frame": "Thematic frame (trends, design, policy)",
     "vru_conduct_any": "Mentions pedestrian/cyclist conduct",
     "driver_exceptional": "Driver exceptional (fled, impaired, criminal charge)",
+    "frame_economic": "Economic frame",
+    "frame_safety": "Safety frame",
+    "frame_quality_of_life": "Quality-of-life frame",
+    "frame_political": "Political frame",
+    "frame_legality": "Legal frame",
+    "stance_infrastructure_support": "Supports bike lanes",
+    "stance_infrastructure_oppose": "Opposes bike lanes",
+    "stance_cyclists_positive": "Positive about cyclists",
+    "stance_cyclists_negative": "Negative about cyclists",
+    "stance_transit_support": "Supports transit project",
+    "stance_transit_oppose": "Opposes transit project",
+    "loaded_language": "Loaded-language score (BABE model, mean)",
 }
+V15_FRAMES = [
+    "frame_economic",
+    "frame_safety",
+    "frame_quality_of_life",
+    "frame_political",
+    "frame_legality",
+]
 
 
 def table(name: str) -> pd.DataFrame:
@@ -95,7 +114,15 @@ st.caption(
     "(Claude Code subagent), not a human; see the write-up for what that limits."
 )
 
-tabs = ["Overview", "Outlets", "Over time", "Police releases", "Examples", "Method"]
+tabs = [
+    "Overview",
+    "Outlets",
+    "Over time",
+    "Police releases",
+    "Examples",
+    "Method",
+    "Bike lanes and transit",
+]
 if MODE == "local":
     tabs.append("Article viewer (local only)")
 tab = st.tabs(tabs)
@@ -206,6 +233,56 @@ with tab[5]:
         "measured results: name the driver as a person, prefer 'crash' or 'collision' to "
         "'accident', and say who struck whom."
     )
+
+with tab[6]:
+    st.write(
+        "v1.5: policy frames and stance in bike lane and transit coverage, from a SetFit model "
+        "trained on weak labels. Quoted text and reporter text are shown separately: a quoted "
+        "speaker's stance is the speaker's, not the outlet's. Stance shares count only sentences "
+        "that mention the stance target. See the write-up addendum for test-set accuracy; "
+        "labels whose model trailed simpler methods are marked there."
+    )
+    topic = st.radio("Topic", ["bike_lane", "transit"], horizontal=True)
+    d = table("v15_frames_by_source")
+    if not d.empty:
+        st.subheader("Policy frames by text source")
+        st.altair_chart(ci_chart(d[d["topic"] == topic], "text_source", V15_FRAMES))
+    d = table("v15_stance_by_source")
+    if not d.empty:
+        st.subheader("Stance by text source")
+        stance = [m for m in d["measure"].unique() if m in LABELS]
+        st.altair_chart(ci_chart(d[d["topic"] == topic], "text_source", stance))
+    d = table("v15_frames_by_outlet")
+    if not d.empty:
+        st.subheader("Reporter text by outlet")
+        d = d[(d["topic"] == topic) & (d["text_source"] == "newsroom")]
+        st.altair_chart(ci_chart(d, "outlet", V15_FRAMES))
+    if topic == "bike_lane":
+        d = table("v15_bike_lane_by_period")
+        if not d.empty:
+            st.subheader("Bill 212 periods (reporter text)")
+            d = d[d["text_source"] == "newsroom"]
+            st.altair_chart(
+                ci_chart(
+                    d,
+                    "period",
+                    [
+                        "frame_legality",
+                        "frame_safety",
+                        "stance_infrastructure_support",
+                        "stance_infrastructure_oppose",
+                    ],
+                )
+            )
+            st.dataframe(pd.read_csv(ROOT / "analysis" / "timeline_bill212.csv"), hide_index=True)
+    st.subheader("Who is quoted")
+    d = table("v15_source_roles")
+    if not d.empty:
+        st.dataframe(d[d["topic"] == topic], use_container_width=True, hide_index=True)
+    d = table("v15_stance_by_role")
+    if not d.empty:
+        st.caption("Stance of quoted sentences by the speaker's role (the speaker's view).")
+        st.dataframe(d[d["topic"] == topic], use_container_width=True, hide_index=True)
 
 if MODE == "local":
     with tab[-1]:
