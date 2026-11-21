@@ -24,7 +24,9 @@ if [[ "${1:-}" == "--eval-sample" ]]; then
   exit 0
 fi
 step eval.tune              # text_source thresholds from dev only
+step eval.tune_fuzzy --stage nli      # NLI cutoffs for the fuzzy labels, dev only (D-71)
 step nlp.labeling.run --steps snorkel setfit
+step eval.tune_fuzzy --stage models   # Snorkel/SetFit thresholds, dev only (D-71)
 step nlp.article
 step eval.score
 step analysis.aggregate

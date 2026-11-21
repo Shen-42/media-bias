@@ -76,6 +76,15 @@ embed_threshold = 0.6
 char_threshold = 0.2
 release_window_days = 3
 
+[fuzzy]
+# Tuned on dev only by eval.tune_fuzzy (D-71). Defaults are the v1.0 values.
+nli_hi_vru_conduct_detail = 0.8
+nli_hi_thematic_cue = 0.8
+snorkel_vru_conduct_detail = 0.5
+snorkel_thematic_cue = 0.5
+setfit_vru_conduct_detail = 0.5
+setfit_thematic_cue = 0.5
+
 [eval]
 seed = 20261119
 

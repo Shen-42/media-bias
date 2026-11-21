@@ -6,17 +6,18 @@ from common import config
 
 POS_T, NEG_T = 0.7, 0.3
 MAX_PER_CLASS = 200
+NEG_RATIO = 3  # D-71: up to 3 negatives per positive; 1:1 made SetFit over-predict rare labels
 
 
 def training_set(texts: list[str], proba, seed: int = 0) -> tuple[list[str], list[int]]:
-    """Confident Snorkel labels only, capped and class-balanced up to MAX_PER_CLASS."""
+    """Confident Snorkel labels only; up to MAX_PER_CLASS positives, NEG_RATIO negatives each."""
     pos = [t for t, p in zip(texts, proba, strict=True) if p >= POS_T]
     neg = [t for t, p in zip(texts, proba, strict=True) if p <= NEG_T]
     rng = random.Random(seed)
     rng.shuffle(pos)
     rng.shuffle(neg)
     n = min(MAX_PER_CLASS, len(pos))
-    pos, neg = pos[:n], neg[: max(n, min(MAX_PER_CLASS, len(neg)))]
+    pos, neg = pos[:n], neg[: max(n, 1) * NEG_RATIO]
     return pos + neg, [1] * len(pos) + [0] * len(neg)
 
 

@@ -6,6 +6,7 @@ qwen ("true" | "false" | None). Outlet identity is never an input (CLAUDE.md).
 
 import re
 
+from common import config
 from nlp.lexicons import CONDUCT_RE, THEMATIC_RE
 
 ABSTAIN, NO, YES = -1, 0, 1
@@ -49,8 +50,12 @@ def lf_conduct_procedural(x):
     return NO if PROCEDURAL_RE.search(x["text"]) and not CONDUCT_RE.search(x["text"]) else ABSTAIN
 
 
+def _hi(label: str) -> float:
+    return config.load()["fuzzy"][f"nli_hi_{label}"]
+
+
 def lf_conduct_nli(x):
-    return _nli(x)
+    return _nli(x, hi=_hi("vru_conduct_detail"))
 
 
 def lf_conduct_qwen(x):
@@ -71,7 +76,7 @@ def lf_thematic_procedural(x):
 
 
 def lf_thematic_nli(x):
-    return _nli(x)
+    return _nli(x, hi=_hi("thematic_cue"))
 
 
 def lf_thematic_qwen(x):
