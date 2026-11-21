@@ -78,8 +78,17 @@ def find_impact(sent: Span) -> Impact:
     return Impact(None, None, list(sent))
 
 
+def _in_charge_name(t: Token) -> bool:
+    """'failing to remain at the scene of an accident' is a charge name (D-69)."""
+    sent = t.sent
+    off = t.idx - sent.start_char
+    return any(m.start() <= off < m.end() for m in lx.CHARGE_ACCIDENT_RE.finditer(sent.text))
+
+
 def has_collision_noun(sent: Span) -> Token | None:
     for t in sent:
+        if _in_charge_name(t):
+            continue
         if _lower(t) in lx.COLLISION_NOUNS or _lemma(t) in lx.COLLISION_NOUNS:
             if t.pos_ in ("NOUN", "PROPN") or _lower(t) == "hit-and-run":
                 return t
@@ -113,14 +122,42 @@ def road_user_tokens(tokens) -> list[Token]:
     return [t for t in tokens if category(t)]
 
 
+def _parties(imp: Impact) -> list[Token]:
+    """Subject, objects and agent of the impact verb."""
+    v = imp.verb
+    if v is None:
+        return []
+    subj = [c for c in v.children if c.dep_ in ("nsubj", "nsubjpass")]
+    return subj + _objects(v) + [a for a in [_agent(v)] if a is not None]
+
+
+def _separate_collision(imp: Impact, sent: Span) -> bool:
+    """A vehicle hits an object or parked car and no VRU or person is named (D-69)."""
+    if imp.verb is None or any(category(t) in ("vru", "person", "pronoun") for t in sent):
+        return False
+    objs = _objects(imp.verb)
+    return bool(objs) and all(
+        category(o) is None or any(_lower(c) == "parked" for c in o.children) for o in objs
+    )
+
+
 def is_crash_sentence(sent: Span) -> tuple[bool, str]:
     imp = find_impact(sent)
     cue = imp.verb if imp.verb is not None else has_collision_noun(sent)
     if cue is None:
         return False, "no impact verb or collision noun"
-    users = road_user_tokens(sent)
+    if lx.GENERAL_RE.search(sent.text):
+        return False, "general statement about crashes (D-69)"
+    parties = _parties(imp)
+    users = [
+        t
+        for t in road_user_tokens(sent)
+        if _lower(t) not in lx.EMERGENCY_NOUNS or t in parties  # D-69
+    ]
     if not users:
         return False, f"cue '{cue.text}' but no road user"
+    if _separate_collision(imp, sent):
+        return False, "separate collision with no VRU (D-69)"
     return True, f"cue '{cue.text}'; road user '{users[0].text}'"
 
 
@@ -297,7 +334,7 @@ def vru_as_actor(sent: Span) -> tuple[bool, str]:
 
 def accident_term(sent: Span) -> tuple[bool, str]:
     for t in sent:
-        if _lemma(t) == "accident" and t.pos_ == "NOUN":
+        if _lemma(t) == "accident" and t.pos_ == "NOUN" and not _in_charge_name(t):
             return True, f"'{t.text}'"
     return False, "no 'accident'"
 

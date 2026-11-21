@@ -1,4 +1,4 @@
-# Codebook: crash framing (v1.0) and bike lane / transit coverage (v1.5 draft)
+# Codebook: crash framing (v1.1) and bike lane / transit coverage (v1.5 draft)
 
 Status: v1.0, frozen for Phase 2 (2026-11-19). Every example sentence is **synthetic**, written to illustrate a rule. Synthetic examples keep article text out of the repo and out of the Qwen prompts, so no test sentence can leak into a prompt.
 
@@ -25,6 +25,11 @@ Labels follow the five dimensions shared across the crash-reporting literature: 
 - Excluded even if a road user is present: road closures, the investigation, witness or dashcam appeals, hospital transport, and death or injury reports, unless the same sentence also mentions the collision.
 - A collision noun with no road user ("The crash happened around 9 p.m.") is excluded.
 - "A cyclist died" alone is excluded (no impact verb or collision noun). "A cyclist died after the crash" is included (D-04).
+- General statements about crashes are excluded: statistics, trends, or counts ("pedestrian collisions rise 30 per cent in the fall", "the third fatal collision so far in 2025"). They are scored by `thematic_cue` (D-69).
+- A charge name is not a collision noun: "charged with failing to remain at the scene of an accident" (D-69).
+- An emergency vehicle (ambulance, police cruiser, fire truck) is a road user only when it is a party to the collision: "a pedestrian was struck by an ambulance" is in; "an ambulance arrived at the crash scene" is out (D-69).
+- A separate collision with no pedestrian, cyclist, or struck person is out, even in an in-scope article: "the driver then struck a fence and two parked cars" (D-69).
+- A person noun with no role ("a man", "a woman", "a 70-year-old") who is struck by a vehicle or driver is the pedestrian or cyclist for every label (D-69).
 
 **Positive.** "A cyclist was struck by a driver at Bloor Street and Spadina Avenue on Tuesday." / "A pedestrian is dead after a collision with a TTC bus in Scarborough."
 
@@ -124,7 +129,7 @@ Values: `vru`, `driver`, `vehicle`, `other`. The grammatical subject of the impa
 
 **Decision rules (D-09).**
 - Lemma `accident` only. "Accidentally" and "accidental" are not counted. "Incident" and "mishap" are not counted.
-- Proper names containing the word do not count.
+- Proper names containing the word do not count. Charge names count as proper names: "failing to remain at the scene of an accident" is `no` (D-69).
 - Because "accident" is a collision noun (D-03), sentences like "The accident happened at Queen and Spadina" reach this label when they name a road user.
 
 **Positive.** "A cyclist was killed in an accident with a truck on Bloor." / "Police say the pedestrian was struck in a hit-and-run accident."
@@ -372,6 +377,8 @@ Complaints about service quality alone are `none` here; they usually carry the `
 
 
 ## Change log
+
+- v1.1 (2026-11-21): settled five gaps the eval annotators found: general statements, charge names, emergency vehicles, separate car-only collisions, and bare person nouns (D-69). Test and dev crash labels were redone under v1.1.
 
 - v1.0 (2026-11-19): "hit-and-run" added as a collision noun (D-31).
 - v1.0 (2026-11-19): resolved all draft flags (D-01 to D-17); added "accident" as a collision noun, the `vru_sentence` unit, `thematic_cue`, `attributed`, `driver_hta_charge`; extended the impact verb list.

@@ -103,6 +103,17 @@ PERSON_NOUNS = {
     "individual",
 }
 PRONOUNS = {"he", "she", "they", "him", "her", "them"}
+# Codebook v1.1 (D-69).
+CHARGE_ACCIDENT_RE = re.compile(
+    r"(?:remain|stop)\w*\s+(?:at\s+the\s+scene\s+of|after)\s+(?:an?|the)\s+accident", re.I
+)
+GENERAL_RE = re.compile(
+    r"per cent|percent|\d\s?%|statistic|\bstats\b|data (?:show|from)|so far (?:this year|in 20\d\d)"
+    r"|the number of|\binstances\b",
+    re.I,
+)
+EMERGENCY_NOUNS = {"ambulance", "cruiser", "firetruck"}
+
 VRU_CONTEXT = re.compile(r"\b(bike|bicycle|e-bike|ebike|scooter|walking|crossing|cycling)\b", re.I)
 
 # Codebook 2.6 (labeling-function lexicon for vru_conduct_detail; not a rule-system label).
