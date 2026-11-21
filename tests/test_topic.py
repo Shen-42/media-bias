@@ -42,3 +42,15 @@ def test_one_passing_mention_is_not_a_topic():
 def test_bill_212_and_court_stories_are_bike_lane():
     t = "Court of Appeal rules on Reducing Gridlock Act"
     assert "bike_lane" in topics(t, "The ruling concerns lanes on Bloor, Yonge and University.")
+
+
+def test_incident_on_transit_is_not_transit():
+    for title in [
+        "Four in custody after stabbing at Don Mills subway",
+        "Knifepoint robbery reported at Toronto subway station",
+        "Man, 36, charged in unprovoked stabbing of TTC employee",
+        "Police seek suspect after man allegedly pushed onto subway tracks",
+    ]:
+        assert topics(title, "") == [], title
+    assert topics("TTC fares to rise 10 cents in January", "") == ["transit"]
+    assert topics("TTC adds overnight buses after riders raise safety concerns", "") == ["transit"]

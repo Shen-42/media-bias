@@ -3,7 +3,8 @@
 A topic counts when its terms are in the headline, or appear at least twice in the first two
 paragraphs (one passing mention is not enough, D-65). A headline that describes a crash keeps
 the article out of bike_lane and transit: a crash story that mentions a bike lane or a TTC bus
-is a crash story.
+is a crash story. A headline about a crime or police incident (a stabbing at a subway station)
+keeps the article out too (D-76).
 """
 
 import re
@@ -25,6 +26,12 @@ CRASH_HEADLINE_RE = re.compile(
     re.I,
 )
 
+INCIDENT_HEADLINE_RE = re.compile(
+    r"\b(?:stab\w*|robb\w*|knifepoint|gunpoint|assault\w*|arrest\w*|charged|suspect\w*|wanted"
+    r"|shoot\w*|shot|pushed|graffiti|hate-motivated|homicide|murder\w*|in custody)\b",
+    re.I,
+)
+
 
 def _has(rx: re.Pattern, title: str, text: str) -> bool:
     paras = [p for p in text.split("\n") if p.strip()]
@@ -34,7 +41,7 @@ def _has(rx: re.Pattern, title: str, text: str) -> bool:
 
 def topics(title: str, text: str) -> list[str]:
     """bike_lane and/or transit tags; crash scope comes from collect.crash (Part A)."""
-    if CRASH_HEADLINE_RE.search(title):
+    if CRASH_HEADLINE_RE.search(title) or INCIDENT_HEADLINE_RE.search(title):
         return []
     out = []
     if _has(BIKE_LANE_RE, title, text):

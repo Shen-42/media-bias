@@ -280,6 +280,7 @@ Status: v1.5 draft (2026-11-20). Part A (sections 0–5) is unchanged. Examples 
 - **`transit`:** the article is mainly about public transit in Toronto: TTC or GO service, fares, funding, construction and new lines (Ontario Line, Eglinton Crosstown, Finch West).
 - **`crash`:** Part A scope.
 - "Mainly about" means the topic is named in the headline or is the subject of the first two body paragraphs. An article that mentions bike lanes once, in a crash story, is not `bike_lane`.
+- A crime or police incident that happens on transit (a stabbing at a subway station, an assault on a bus) is not `transit` (D-76).
 - The Toronto rules from Part A apply (D-40, D-54, D-58).
 
 **Positive (`bike_lane`).** Headline "Council votes to keep the Bloor bike lanes" / lead "The province will begin removing the bike lanes on Yonge Street next week."
