@@ -37,23 +37,23 @@ Done:
 - Codebook Part B draft (sections 7–9): topic, source_role, policy_frame, three stance targets, loaded_language feature (D-63); label mapping in docs/related-work.md.
 - Bill 212 timeline with sources (`analysis/timeline_bill212.csv`, D-64).
 - Fetch fix for non-crash topics (D-62); broader bike lane slugs and `--rescan` (D-61); topic tagger `nlp/topic.py` (D-65).
+- Source extraction `nlp/sources.py` (D-66); v1.5 LFs, NLI hypotheses, Qwen prompt `v15_v1.txt` (D-67).
+- v1.5 pipeline `nlp/v15.py` (topics, sources, pools, nli, qwen, snorkel, setfit, babe; D-72), eval sampler `eval/sample_v15.py` and merge `eval/merge_v15.py` (D-73), scorer `eval/score_v15.py`, tables `analysis/aggregate_v15.py`, dashboard tab, `run_v15.sh`.
+- Collection: CTV and Global fetch + rescan done; CityNews fetch done (2026-11-21).
+
+## v1 follow-ups (2026-11-21)
+- Global drop traced: Global stopped running routine Toronto crash briefs after June 2024; not a collection defect (D-68). Write-up and SUMMARY updated.
+- Codebook v1.1 settles the five annotator gaps (D-69); rules updated with tests; all test/dev crash rows relabeled blind (8 of 100 test labels changed; second annotator unchanged). v1.0 metrics kept as `eval/reports/*_v10.csv`.
+- Fuzzy-label rework (D-70, D-71): dev +100 context rows; NLI cutoffs and Snorkel/SetFit thresholds tuned on dev (`eval/tune_fuzzy.py`); SetFit trains at up to 3:1 negatives.
 
 Running (logs in data/logs/):
-| Job | Log | Then |
-|---|---|---|
-| Fetch bike_lane then transit URLs, per outlet | fetch_v15_<outlet>.log (prints FETCH_DONE) | rescan sitemaps with the broader slugs, fetch new bike_lane URLs (rescan_<outlet>.log, prints RESCAN_DONE) |
+- `chain_v15.sh`: waits for CityNews RESCAN_DONE, then `REDO=1 ./run_pipeline.sh` (pipeline_v11.log, prints PIPELINE_DONE: v1.1 rules on all sentences, new articles split and filtered, rescoring), then `./run_v15.sh --sample` (v15_sample.log, prints V15_SAMPLE_DONE).
 
 Next:
-1. Source extraction: speaker + role rules for `source_role` (codebook 8.1), with tests.
-2. Labeling functions for `policy_frame` and the stance targets: lexicons, NLI hypotheses, Qwen prompt v1.5 (examples from codebook only).
-3. After fetching: sentences, Toronto filter, topic tags, text_source on v1.5 articles.
-4. v1.5 eval sample (dev and test, random + disagreement, plus a topic-precision sample); annotator subagents.
-5. Snorkel + SetFit; aggregates by outlet, text_source and Bill 212 period; dashboard view; write-up addendum.
-
-## v1 follow-ups (not started)
-1. Trace why Global's in-scope count drops after mid-2024.
-2. Revise the codebook for the gaps the annotators found (charge names with "accident", bare person nouns, general statements, emergency vehicles, sentence-level VRU scope), then relabel.
-3. Rework the fuzzy-label models on dev only; SetFit and Snorkel trailed single labeling functions on test.
+1. After PIPELINE_DONE: compare v1.1 metrics and rates with v1.0; update writeup tables and SUMMARY.
+2. After V15_SAMPLE_DONE: annotate test_v15 (+ second annotator on 30), dev_v15, dis_test_v15, test_v15_topic, test_v15_source with subagents; merge with `eval.merge_v15`.
+3. Tune v1.5 on dev only if needed, then `./run_v15.sh` (Snorkel/SetFit, score, tables).
+4. Write-up addendum for v1.5; SUMMARY update.
 
 ## Blockers
 - None.
