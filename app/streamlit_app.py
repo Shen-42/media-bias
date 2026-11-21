@@ -235,12 +235,11 @@ with tab[5]:
     )
 
 with tab[6]:
-    st.write(
-        "v1.5: policy frames and stance in bike lane and transit coverage, from a SetFit model "
-        "trained on weak labels. Quoted text and reporter text are shown separately: a quoted "
-        "speaker's stance is the speaker's, not the outlet's. Stance shares count only sentences "
-        "that mention the stance target. See the write-up addendum for test-set accuracy; "
-        "labels whose model trailed simpler methods are marked there."
+    st.warning(
+        "v1.5 rates below come from a SetFit model that failed validation (D-80): it labels "
+        "48% of transit-mention sentences with a stance where the annotated test sample has "
+        "1%, and 98% of bike-infrastructure-mention sentences where the sample has 22%. They "
+        "are shown for diagnosis only and are not findings. See the write-up addendum."
     )
     topic = st.radio("Topic", ["bike_lane", "transit"], horizontal=True)
     d = table("v15_frames_by_source")
