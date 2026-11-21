@@ -24,7 +24,9 @@ FIELDS = {
     "test_v15": list(V15_LABELS),
     "dev_v15": list(V15_LABELS),
     "test_v15_topic": ["bike_lane", "transit"],
+    "dev_v15_topic": ["bike_lane", "transit"],
     "test_v15_source": ["speaker", "role"],
+    "dev_v15_source": ["speaker", "role"],
 }
 
 
