@@ -24,3 +24,18 @@ Write one JSON object per input line to the output path you are given, with
   cannot be `police_matched`.
 
 Label every line. Output valid JSONL only.
+
+## v1.5 packets (codebook Part B)
+
+- **v15** sentence packets (`packet_*_v15.jsonl`, lines with `sentence_id`, `sentence`,
+  `headline`): label `policy_frame` (economic | safety | quality_of_life | political |
+  legality | other | none), `stance_infrastructure` (support | oppose | none),
+  `stance_cyclists` (positive | negative | none), `stance_transit` (support | oppose | none),
+  following codebook §9. A sentence that names no target is `none` for that stance.
+- **topic** packet (`packet_test_v15_topic.jsonl`, lines with `article_id`, `headline`,
+  `lead`): label `bike_lane` and `transit` (true | false) under codebook §7.1, from the
+  headline and lead only.
+- **source** packet (`packet_test_v15_source.jsonl`, lines with `sentence_id`, `sentence`,
+  `article`): give `speaker` (the person or body quoted or paraphrased in `sentence`, as the
+  article names them) and `role` under codebook §8.1. Use the whole article to find how the
+  speaker is introduced. If the sentence quotes no one, set both to `none`.
