@@ -30,3 +30,10 @@ def test_training_set_caps_and_drops_unconfident():
     xs, ys = v15.training_set(texts, proba, vals)
     assert "unsure" not in xs
     assert ys.count(2) == v15.CAP["none"] and ys.count(0) == 50
+
+
+def test_babe_label_choice_and_score():
+    assert v15._biased_label({"0": "Non-biased", "1": "Biased"}) == "Biased"
+    assert v15._biased_label({"0": "LABEL_0", "1": "LABEL_1"}) == "LABEL_1"
+    out = [{"label": "LABEL_0", "score": 0.3}, {"label": "LABEL_1", "score": 0.7}]
+    assert v15._score(out, "LABEL_1") == 0.7

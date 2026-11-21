@@ -1,0 +1,239 @@
+"""v1.5 eval samples (D-73): python -m eval.sample_v15 {sentences,disagreement}.
+
+sentences: test = 100 random + 60 random with a stance target; dev = 60 random + 40 with a
+  target; plus 60 articles for topic precision and 60 quote units for source roles (test).
+disagreement: 40 test rows where SetFit and a lexicon labeling function disagree.
+Nothing is drawn from the Snorkel pool or from eval/excluded_ids.txt. Packets go to data/.
+"""
+
+import argparse
+import csv
+import json
+import random
+from pathlib import Path
+
+from common import config, db
+from eval.sample import EVAL, excluded_ids
+from nlp import v15
+from nlp.labeling import lfs_v15
+
+SENT_COLS = ["sentence_id", "set", "sample", "outlet", "year", "part", *v15.LABELS, "annotator"]
+TOPIC_COLS = ["article_id", "set", "sample", "outlet", "year", "bike_lane", "transit", "annotator"]
+SOURCE_COLS = ["sentence_id", "set", "sample", "outlet", "year", "speaker", "role", "annotator"]
+PACKETS = Path(config.ROOT) / "data" / "eval" / "in"
+
+
+def has_target(text: str) -> bool:
+    return any(rx.search(text) for rx in v15.TARGETS.values())
+
+
+def draw(items: list, n: int, taken: set, rng, key=lambda x: x["id"]) -> list:
+    out = []
+    for it in items:
+        if len(out) == n:
+            break
+        if key(it) not in taken:
+            out.append(it)
+            taken.add(key(it))
+    return out
+
+
+def _write(path: Path, cols: list[str], rows: list[dict]) -> None:
+    new = not path.exists()
+    with open(path, "a", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=cols)
+        if new:
+            w.writeheader()
+        for r in rows:
+            w.writerow({k: r.get(k, "") for k in cols})
+
+
+def _meta(con) -> dict[str, dict]:
+    return {
+        r["id"]: {"outlet": r["outlet"], "year": (r["published"] or "")[:4]}
+        for r in con.execute("SELECT id, outlet, published FROM articles")
+    }
+
+
+def _packet(name: str, lines: list[dict]) -> None:
+    PACKETS.mkdir(parents=True, exist_ok=True)
+    with open(PACKETS / f"packet_{name}.jsonl", "w") as f:
+        for ln in lines:
+            f.write(json.dumps(ln) + "\n")
+
+
+def sentences(con, rng) -> None:
+    pool = {r[0] for r in con.execute("SELECT sentence_id FROM pools WHERE pool='v15'")}
+    taken = pool | excluded_ids() | v15.eval_ids()
+    sents = v15.v15_sentences(con)
+    rng.shuffle(sents)
+    tgt = [s for s in sents if has_target(s["text"])]
+    meta = _meta(con)
+    plan = {
+        "test": [("random", sents, 100), ("random_target", tgt, 60)],
+        "dev": [("random", sents, 60), ("target", tgt, 40)],
+    }
+    for split, parts in plan.items():
+        rows = []
+        for sample, src, n in parts:
+            for s in draw(src, n, taken, rng):
+                rows.append(
+                    {
+                        "sentence_id": s["id"],
+                        "set": "sentence",
+                        "sample": sample,
+                        "part": s["part"],
+                        **meta[s["article_id"]],
+                        "text": s["text"],
+                    }
+                )
+        _write(EVAL / f"{split}_v15.csv", SENT_COLS, rows)
+        order = rows[:]
+        rng.shuffle(order)
+        _packet(
+            f"{split}_v15",
+            [
+                {
+                    "sentence_id": r["sentence_id"],
+                    "headline": r["part"] == "headline",
+                    "sentence": r["text"],
+                }
+                for r in order
+            ],
+        )
+    # Topic precision: tagged articles, headline + first two paragraphs.
+    arts = [
+        dict(r)
+        for r in con.execute(
+            "SELECT id, title, text, topic_tags FROM articles WHERE is_toronto=1 AND is_canonical=1"
+        )
+    ]
+    arts = [a for a in arts if set(json.loads(a["topic_tags"] or "[]")) & {"bike_lane", "transit"}]
+    rng.shuffle(arts)
+    arts = arts[:60]
+    _write(
+        EVAL / "test_v15_topic.csv",
+        TOPIC_COLS,
+        [
+            {"article_id": a["id"], "set": "topic", "sample": "random", **meta[a["id"]]}
+            for a in arts
+        ],
+    )
+    _packet(
+        "test_v15_topic",
+        [
+            {
+                "article_id": a["id"],
+                "headline": a["title"],
+                "lead": "\n".join([p for p in (a["text"] or "").split("\n") if p.strip()][:2]),
+            }
+            for a in arts
+        ],
+    )
+    # Source roles: quote units with the whole article body, so the annotator sees introductions.
+    units = [
+        dict(r)
+        for r in con.execute(
+            "SELECT q.sentence_id, s.article_id, s.text FROM v15_sources q"
+            " JOIN sentences s ON s.id = q.sentence_id"
+        )
+    ]
+    rng.shuffle(units)
+    units = [u for u in units if u["sentence_id"] not in taken][:60]
+    body = {a: t for a, t in con.execute("SELECT id, text FROM articles")}
+    _write(
+        EVAL / "test_v15_source.csv",
+        SOURCE_COLS,
+        [
+            {
+                "sentence_id": u["sentence_id"],
+                "set": "source",
+                "sample": "random",
+                **meta[u["article_id"]],
+            }
+            for u in units
+        ],
+    )
+    _packet(
+        "test_v15_source",
+        [
+            {
+                "sentence_id": u["sentence_id"],
+                "sentence": u["text"],
+                "article": body[u["article_id"]],
+            }
+            for u in units
+        ],
+    )
+    print("v15 samples written", flush=True)
+
+
+def disagreement(con, rng) -> None:
+    """Rows where SetFit's label differs from a non-abstaining lexicon/cue LF."""
+    taken = (
+        {r[0] for r in con.execute("SELECT sentence_id FROM pools WHERE pool='v15'")}
+        | excluded_ids()
+        | v15.eval_ids()
+    )
+    setfit = {
+        (r[0], r[1]): r[2]
+        for r in con.execute(
+            "SELECT sentence_id, label, value FROM labels WHERE source='setfit' AND label IN"
+            " ('policy_frame','stance_infrastructure','stance_cyclists','stance_transit')"
+        )
+    }
+    lex = {
+        "policy_frame": lfs_v15.lf_frame_lexicon,
+        "stance_infrastructure": lfs_v15.lf_infra_cues,
+        "stance_cyclists": lfs_v15.lf_cyclists_cues,
+        "stance_transit": lfs_v15.lf_transit_cues,
+    }
+    sents = [s for s in v15.v15_sentences(con) if s["id"] not in taken]
+    rng.shuffle(sents)
+    meta = _meta(con)
+    rows = []
+    for s in sents:
+        x = {"text": s["text"], "quoted": bool(s["quoted"]), "attributed": bool(s["attributed"])}
+        if any(
+            (v := lf(x)) is not None and setfit.get((s["id"], lab)) not in (None, v)
+            for lab, lf in lex.items()
+        ):
+            rows.append(
+                {
+                    "sentence_id": s["id"],
+                    "set": "sentence",
+                    "sample": "disagreement",
+                    "part": s["part"],
+                    **meta[s["article_id"]],
+                    "text": s["text"],
+                }
+            )
+        if len(rows) == 40:
+            break
+    _write(EVAL / "test_v15.csv", SENT_COLS, rows)
+    _packet(
+        "dis_test_v15",
+        [
+            {
+                "sentence_id": r["sentence_id"],
+                "headline": r["part"] == "headline",
+                "sentence": r["text"],
+            }
+            for r in rows
+        ],
+    )
+    print(f"disagreement rows: {len(rows)}", flush=True)
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("stage", choices=["sentences", "disagreement"])
+    ap.add_argument("--db", default=None)
+    args = ap.parse_args()
+    con = db.connect(args.db)
+    rng = random.Random(config.load()["eval"]["seed"] + 150)
+    {"sentences": sentences, "disagreement": disagreement}[args.stage](con, rng)
+
+
+if __name__ == "__main__":
+    main()

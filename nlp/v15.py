@@ -139,6 +139,44 @@ def step_qwen(con) -> None:
     qwen.run(con, "v15", [(s["id"], s["text"]) for s in _pool_rows(con)])
 
 
+def step_babe(con) -> None:
+    """Loaded-language score for every v1.5 sentence (codebook 9.3; a feature, not a label)."""
+    from transformers import pipeline
+
+    from nlp.device import get_device
+
+    m = config.load()["models"]["babe"]
+    clf = pipeline(
+        "text-classification", model=m["name"], revision=m["revision"], device=get_device()
+    )
+    sents = v15_sentences(con)
+    biased = _biased_label(clf.model.config.id2label)
+    for i in range(0, len(sents), 256):
+        chunk = sents[i : i + 256]
+        outs = clf([s["text"] for s in chunk], top_k=None, truncation=True, batch_size=32)
+        con.executemany(
+            "INSERT OR REPLACE INTO labels VALUES (?,?,?,?,?,?)",
+            [
+                (s["id"], "loaded_language", "babe", None, _score(o, biased), m["name"])
+                for s, o in zip(chunk, outs, strict=True)
+            ],
+        )
+        con.commit()
+        print(f"babe {i}/{len(sents)}", flush=True)
+
+
+def _biased_label(id2label: dict) -> str:
+    names = {int(k): v for k, v in id2label.items()}
+    for v in names.values():
+        if v.lower() in ("biased", "bias"):
+            return v
+    return names[1]  # LABEL_1 is the biased class in the BABE data (0 = non-biased)
+
+
+def _score(out: list[dict], biased: str) -> float:
+    return next(float(o["score"]) for o in out if o["label"] == biased)
+
+
 def lf_inputs(con, label: str, sents: list[dict]) -> list[dict]:
     votes: dict[tuple[str, str], tuple] = {}
     for r in con.execute(
