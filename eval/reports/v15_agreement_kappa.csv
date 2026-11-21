@@ -1,0 +1,5 @@
+label,n,agreement,cohen_kappa
+policy_frame,24,0.7916666666666666,0.7535934291581109
+stance_infrastructure,24,1.0,
+stance_cyclists,24,1.0,
+stance_transit,24,1.0,

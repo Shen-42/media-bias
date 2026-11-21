@@ -29,6 +29,11 @@ LEXICON = {
 HEADLINE = {"policy_frame": "random"} | {k: "random_target" for k in v15.TARGETS}
 
 
+def in_scope(con) -> set[str]:
+    """v1.5 sentence ids; eval rows from articles that left scope are dropped (D-79)."""
+    return {s["id"] for s in v15.v15_sentences(con)}
+
+
 def predictions(con, gold: list[dict]) -> dict[tuple[str, str, str], str]:
     sent = {
         r["id"]: dict(r) for r in con.execute("SELECT id, text, quoted, attributed FROM sentences")
@@ -107,7 +112,12 @@ def topic_precision(con) -> pd.DataFrame:
 
 def source_roles(con) -> pd.DataFrame:
     pred = {r[0]: r[1] for r in con.execute("SELECT sentence_id, role FROM v15_sources")}
-    gold = [g for g in read_csv(EVAL / "test_v15_source.csv") if norm(g["role"])]
+    scope = in_scope(con)
+    gold = [
+        g
+        for g in read_csv(EVAL / "test_v15_source.csv")
+        if norm(g["role"]) and g["sentence_id"] in scope
+    ]
     y = [norm(g["role"]) for g in gold]
     yhat = [pred.get(g["sentence_id"], "abstain") for g in gold]
     lo, hi = bootstrap_ci(y, yhat, macro_f1) if len(y) > 5 else (np.nan, np.nan)
@@ -155,7 +165,8 @@ def main() -> None:
     ap.add_argument("--db", default=None)
     args = ap.parse_args()
     con = db.connect(args.db)
-    gold = read_csv(EVAL / "test_v15.csv")
+    scope = in_scope(con)
+    gold = [g for g in read_csv(EVAL / "test_v15.csv") if g["sentence_id"] in scope]
     summary, classes = score(gold, predictions(con, gold))
     summary.to_csv(REPORTS / "v15_metrics_summary.csv", index=False)
     classes.to_csv(REPORTS / "v15_metrics_per_class.csv", index=False)
