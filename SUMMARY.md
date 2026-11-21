@@ -46,9 +46,12 @@ The Snorkel and SetFit models for `thematic_cue` and `vru_conduct_detail` did wo
 
 The annotators found articles outside v1 scope in the sample: US wire stories on CityNews Toronto pages, car-only crashes, regional Global stories, and wrong police-release links. The scope and linking rules were tightened (D-54, D-56, D-58), which cut the corpus from 1,671 to 942 articles. Out-of-scope eval rows were replaced by new random draws (D-55). Every change is in `DECISIONS.md`.
 
+## Coverage note
+
+Global's in-scope count drops sharply after mid-2024. Global stopped publishing routine Toronto crash briefs at that point; collection and filtering were checked and are not the cause (D-68).
+
 ## Open items
 
-- Global's in-scope count drops sharply after mid-2024; the cause was not traced.
 - The codebook has gaps the annotators found: charge names with "accident", a bare "man" or "woman" who was struck, general statements about crashes, and emergency vehicles. Settling them needs a codebook revision and relabeling.
 - The fuzzy-label models need work on the dev set before their rates can be used.
 - Fevyer & Aldred (2022) could not be read, so it is not compared.

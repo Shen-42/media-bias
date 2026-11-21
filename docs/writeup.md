@@ -27,7 +27,7 @@ In-scope crash articles per outlet per quarter (`analysis/tables/coverage_by_qua
 | 2026Q3 | 34 | 44 | 6 |
 | 2026Q4 | 7 | 13 | 1 |
 
-Coverage is uneven. CTV's sitemaps start in 2025. Global's in-scope count falls from about 30 a quarter to under 10 after mid-2024; the cause was not traced (see Limitations). Outlet comparisons use only the window all three outlets cover (2025-01-14 to 2026-10-02), which holds only 28 Global articles. Trends are reported within each outlet. The before/after Bill 212 comparison uses only outlets with articles on both sides of 2024-11-25.
+Coverage is uneven. CTV's sitemaps start in 2025. Global's in-scope count falls from about 30 a quarter to under 10 after mid-2024, because Global stopped running routine Toronto crash briefs (see Limitations). Outlet comparisons use only the window all three outlets cover (2025-01-14 to 2026-10-02), which holds only 28 Global articles. Trends are reported within each outlet. The before/after Bill 212 comparison uses only outlets with articles on both sides of 2024-11-25.
 
 ## Key results
 
@@ -118,7 +118,7 @@ Fevyer & Aldred (2022) studied fatal-crash reporting in the London *Evening Stan
   - CBC: its robots.txt could not be reached from the collection network, which is treated as no permission (D-33).
 
   Dropping the Toronto Sun removes the main right-leaning outlet in the planned set. The remaining outlets (CityNews, CTV, Global) are mainstream broadcasters' news sites, so outlet comparisons cover a narrower range of editorial positions than planned and cannot speak to differences across the political spectrum.
-- **Uneven coverage.** CTV covers 2025 onward only. Global is national (a Toronto filter selects local crashes), and its in-scope count drops sharply after mid-2024. The cause was not traced. Candidates include a change in Global's sitemaps or page titles, and the Toronto filter. Only 28 Global articles fall in the common window, so Global's outlet intervals are wide.
+- **Uneven coverage.** CTV covers 2025 onward only. Global is national (a Toronto filter selects local crashes), and its in-scope count drops sharply after mid-2024. The drop comes from what Global published, not from collection (D-68). Global's sitemaps grew more slowly after mid-2024 (about 4 sitemaps of 1,000 URLs a month in early 2024, about 2.3 later), and short routine items such as "Pedestrian seriously injured after being hit by vehicle in Toronto" almost stop after June 2024. The Global articles that remain are mostly car-only crashes and policy stories, which are out of scope. The share of Toronto URLs in each sitemap did not change. Only 28 Global articles fall in the common window, so Global's outlet intervals are wide.
 - **LLM-annotated test set.** See Methods. The kappa of 1.0 is between two runs of the same model.
 - **Fuzzy labels failed.** The Snorkel and SetFit models for `thematic_cue` and `vru_conduct_detail` did worse than single labeling functions, so the article-level thematic and conduct rates are not results.
 - **Small test cells.** Several labels have few or no positive test cases (`vru_as_actor`, `accident_term`, random-row `vru_conduct_detail`), so their scores say little about recall.
