@@ -170,7 +170,8 @@ def _biased_label(id2label: dict) -> str:
     for v in names.values():
         if v.lower() in ("biased", "bias"):
             return v
-    return names[1]  # LABEL_1 is the biased class in the BABE data (0 = non-biased)
+    # LABEL_1 = biased: checked 2026-11-21 on synthetic loaded sentences from both sides (D-73).
+    return names[1]
 
 
 def _score(out: list[dict], biased: str) -> float:
