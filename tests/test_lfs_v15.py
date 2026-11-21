@@ -15,6 +15,12 @@ def test_frame_lexicon_positive_and_negative():
     assert L.lf_frame_lexicon(x("Drivers say the commute now takes 20 minutes longer.")) == (
         "quality_of_life"
     )
+    assert L.lf_frame_lexicon(x("A poll found 55 per cent of residents support the plan.")) == (
+        "other"
+    )
+    assert L.lf_frame_lexicon(x("The agency ordered a review of its maintenance records.")) == (
+        "other"
+    )
     assert L.lf_frame_lexicon(x("She spoke at a news conference.")) is None
     # two frames: abstain rather than guess
     assert L.lf_frame_lexicon(x("The court case has cost $2 million.")) is None

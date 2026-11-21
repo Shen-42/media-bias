@@ -52,7 +52,11 @@ HYPOTHESES: dict[str, list[tuple[str, str]]] = {
         ("quality_of_life", "This sentence is about traffic, commute times, or daily life."),
         ("political", "This sentence is about politics, elections, or a government dispute."),
         ("legality", "This sentence is about a law, a court case, or legal rights."),
-        ("other", "This sentence is about public opinion, fairness, or capacity."),
+        (
+            "other",
+            "This sentence is about how well a service or project is run, its reliability, "
+            "oversight, or public opinion.",
+        ),
         ("none", "This sentence states a time, place, or event with no policy content."),
     ],
     "stance_infrastructure": [

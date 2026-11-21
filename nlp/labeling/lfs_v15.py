@@ -51,6 +51,14 @@ FRAME_RES = {
         r"|environmental assessment",
         re.I,
     ),
+    # Other Boydstun frames (codebook 9.1): capacity and resources, policy evaluation,
+    # fairness, public opinion. Added after dev showed no LF voted `other` (D-78).
+    "other": re.compile(
+        r"\breliab|\bmaintenance\b|\bbreakdowns?\b|\bridership\b|\bcapacity\b|\bstaffing\b"
+        r"|\breview\b|\binquiry\b|\baudit\b|\boversight\b|\baccountab|\bpoll\b|\bsurvey\b"
+        r"|\bfair(?:ness)?\b|\bequity\b|\bmental health\b|\bhousing\b|\bhomeless",
+        re.I,
+    ),
 }
 SCHEDULE_RE = re.compile(
     r"\b(?:will (?:begin|start|close|reopen|resume)|begins?|starts?|is closed|reopens?)\b"
