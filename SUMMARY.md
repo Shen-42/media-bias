@@ -1,6 +1,6 @@
 # Summary: v1 (Phases 0–3)
 
-Toronto crash coverage mostly describes the impact as something that happened to the pedestrian or cyclist, with a vehicle as the agent. Half of newsroom crash sentences are passives with an agent. When a driver or vehicle is named in the impact clause, it is the vehicle 84% of the time. "Accident" appears in under 1% of crash sentences. Full results are in `docs/writeup.md`.
+Toronto crash coverage mostly describes the impact as something that happened to the pedestrian or cyclist, with a vehicle as the agent. Half of newsroom crash sentences are passives with an agent. When a driver or vehicle is named in the impact clause, it is the vehicle 83% of the time. "Accident" appears in under 1% of crash sentences. Full results are in `docs/writeup.md`.
 
 ## What was built
 
@@ -12,20 +12,20 @@ Toronto crash coverage mostly describes the impact as something that happened to
 
 ## Corpus
 
-942 in-scope articles and 3,114 crash sentences. Of the articles, 218 are linked to a police release. Four planned outlets were dropped (Toronto Sun, blogTO, Toronto Today, CBC). CTV covers 2025 onward only.
+979 in-scope articles and 3,126 crash sentences (codebook v1.1). Of the articles, 218 are linked to a police release. Four planned outlets were dropped (Toronto Sun, blogTO, Toronto Today, CBC). CTV covers 2025 onward only.
 
 ## Main results (newsroom text)
 
 | Measure | Rate (95% CI) |
 |---|---|
-| Passive with agent | 50% (48–53) |
+| Passive with agent | 51% (48–53) |
 | No agent (agentless passive, intransitive, nominal) | 39% |
-| Vehicle as agent, when a driver or vehicle is named | 84% |
+| Vehicle as agent, when a driver or vehicle is named | 83% |
 | Focus on the pedestrian or cyclist | 63% (60–66) |
-| "Accident" | 0.9% (0.4–1.5) |
-| Articles that mention a driver (exceptional / ordinary) | 87% / 80%, intervals overlap |
+| "Accident" | 0.8% (0.3–1.4) |
+| Articles that mention a driver (exceptional / ordinary) | 86% / 79%, intervals overlap |
 
-- Police-matched sentences use the active voice about three times as often as newsroom sentences (31% vs 10%).
+- Police-matched sentences use the active voice about three times as often as newsroom sentences (30% vs 11%).
 - Headlines lean further toward the victim than body text.
 - No outlet differs from another: all intervals overlap.
 
@@ -35,16 +35,16 @@ The test set has 240 sentences, labeled by a Claude Code subagent, not a human. 
 
 | Label | Accuracy | Macro-F1 |
 |---|---|---|
-| Voice | 0.98 | 0.97 |
+| Voice | 0.98 | 0.96 |
 | Driver reference | 0.90 | 0.85 |
-| Focus | 0.86 | 0.61 |
+| Focus | 0.85 | 0.57 |
 | Text source | 0.90 | 0.85 |
 
-The Snorkel and SetFit models for `thematic_cue` and `vru_conduct_detail` did worse than single labeling functions. Their article-level rates are not reported as findings. Kappa between two LLM annotators was 1.0 on 26 rows. That reflects one model reading one codebook, not independent agreement.
+Crash rows were relabeled under codebook v1.1 (8 of 100 test labels changed). After a dev-only rework (D-70, D-71), the Snorkel label model matches the Qwen labeling function for `thematic_cue` and `vru_conduct_detail` (macro-F1 0.81 and 0.83), but SetFit, the only model that labels the whole corpus, still trails (0.57 and 0.60). The article-level rates are not reported as findings. Kappa between two LLM annotators was 1.0 on 26 rows. That reflects one model reading one codebook, not independent agreement.
 
 ## Changes made during evaluation
 
-The annotators found articles outside v1 scope in the sample: US wire stories on CityNews Toronto pages, car-only crashes, regional Global stories, and wrong police-release links. The scope and linking rules were tightened (D-54, D-56, D-58), which cut the corpus from 1,671 to 942 articles. Out-of-scope eval rows were replaced by new random draws (D-55). Every change is in `DECISIONS.md`.
+The annotators found articles outside v1 scope in the sample: US wire stories on CityNews Toronto pages, car-only crashes, regional Global stories, and wrong police-release links. The scope and linking rules were tightened (D-54, D-56, D-58), which cut the corpus from 1,671 to 942 articles. Out-of-scope eval rows were replaced by new random draws (D-55). Codebook v1.1 then settled five gaps the annotators found (charge names, bare person nouns, general statements, emergency vehicles, separate car-only collisions; D-69); headline rates moved by under a point. Every change is in `DECISIONS.md`.
 
 ## Coverage note
 
@@ -52,6 +52,5 @@ Global's in-scope count drops sharply after mid-2024. Global stopped publishing 
 
 ## Open items
 
-- The codebook has gaps the annotators found: charge names with "accident", a bare "man" or "woman" who was struck, general statements about crashes, and emergency vehicles. Settling them needs a codebook revision and relabeling.
-- The fuzzy-label models need work on the dev set before their rates can be used.
+- Corpus-wide fuzzy-label rates need an end model that matches Snorkel; SetFit on MiniLM does not yet.
 - Fevyer & Aldred (2022) could not be read, so it is not compared.
