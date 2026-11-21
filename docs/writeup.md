@@ -126,3 +126,49 @@ Fevyer & Aldred (2022) studied fatal-crash reporting in the London *Evening Stan
 - **Codebook gaps found by annotators, settled after the first scoring.** Codebook v1.1 (D-69) settles five cases the v1.0 annotators had to resolve by their own reading: charge names containing "accident", a bare "man" or "woman" who was struck, general statements about crashes, emergency vehicles at the scene, and separate car-only collisions. The rules were changed to match and the test and dev crash rows were relabeled blind. The revision came after the first test scores were seen; it changed 8 test labels and moved no headline rate by more than a point, but readers should know the order.
 - **Release linking.** Linking requires two shared street names, which misses some correct links. Some linked releases are update or arrest notices rather than the first release about the crash. Release text stored from Wayback includes page navigation, which may dilute character-overlap scores.
 - **Police-matched subset.** Linked articles are more often fatal and hit-and-run than unlinked ones, so police-vs-newsroom differences apply to that subset.
+
+## Addendum: bike lane and transit coverage (v1.5)
+
+v1.5 did not produce stance or policy-frame rates that can be reported. The trained model (SetFit) failed validation by a wide margin, and stance, as the codebook defines it, turned out to be rare. In the annotated test sample, 1 of 69 sentences naming transit (1%, 95% CI 0–8%) and 2 of 9 naming bike infrastructure take a position. SetFit labels a position on 48% and 98% of such sentences. What v1.5 did measure is below.
+
+### Corpus
+
+1,167 Toronto articles are tagged bike lane (105) or transit (1,062), with 26,637 sentences, from the same three outlets and window as v1. Topic tags come from keyword rules on the headline and first two paragraphs (D-65). A headline about a crash or about a crime or police incident keeps an article out (D-76).
+
+### What was measured
+
+| Measure | Result (test) | Before dev tuning |
+|---|---|---|
+| Topic precision, bike lane | 0.97 (n = 29) | 0.94 (n = 32) |
+| Topic precision, transit | 0.80 (n = 46) | 0.64 (n = 58) |
+| Source-role accuracy | 0.62 (n = 53) | 0.57 (n = 60) |
+
+Topic and role rules were tuned on separate dev samples (D-75 to D-77). Test errors were not used. The "after" columns have smaller n because test rows from articles that left scope are dropped (D-79). Topic tagging is precision-only: recall was not measured. The role extractor labels 32% of quote units `unknown`; the annotator, who read the full article, never did. Role counts are therefore not reported as a finding. Of the quote units with a known role, transit and city staff (`agency_staff`) are the most common.
+
+Policy frames in 75 random annotated test sentences: no policy content 49% (38–60), `other` 15% (8–24), quality of life 13% (7–23), economic 12% (6–21), safety 5% (2–13), political 3% (1–9), legality 3% (1–9). These are pooled across outlets and both topics, and are too few to compare outlets or the Bill 212 periods. `other` here is mostly transit service reliability, maintenance and project delivery, which the codebook places under capacity and policy evaluation.
+
+### Model results
+
+Scores are on the same test rows (random rows for frames). Gold labels came from an LLM annotator.
+
+| System | Frame accuracy | Frame macro-F1 |
+|---|---|---|
+| Frame lexicon (29% coverage) | 0.17 | 0.39 |
+| NLI zero-shot | 0.55 | 0.49 |
+| Qwen | 0.52 | 0.27 |
+| Snorkel label model | 0.60 | 0.42 |
+| SetFit | 0.45 | 0.35 |
+
+Stance metrics are not given: the random test rows hold one stance-positive sentence for transit, two for infrastructure and none for cyclists, so any score rests on the `none` class. Kappa against a second annotator run is 0.75 for policy frame (n = 24). Both runs labeled every stance `none`.
+
+SetFit fails for two reasons. First, its training labels come from Snorkel, whose NLI and Qwen inputs vote for a stance far more often than the codebook allows. A newsroom sentence that reports a position in neutral words is `none` (codebook 9.2), and most transit sentences in this corpus are service and project news. Second, the rarer frames got few training examples (13 for `other` after the dev fix, D-78). Dev showed the same ranking (Snorkel above SetFit) before test was scored.
+
+### What this means
+
+Under this codebook, newsroom text about Toronto transit almost never takes a side, and quoted text rarely does in a random sample. That is itself a result, but its interval is wide. Measuring outlet or period differences in a rate near 1% would need thousands of annotated sentences or a different definition. One option is to count the positions that sources hold (attributed stance) and report them by source role. That would change codebook 9.2, so it is left to the author (D-80).
+
+### Limitations specific to v1.5
+
+- The incident-headline rule removed one true bike lane article in the dev sample ("arrested as … bike lane removal protests continue").
+- Bike lane coverage is small (105 articles), so the Bill 212 period comparison planned in PLAN.md has few sentences per period even before the model problem.
+- The BABE loaded-language score (`mediabiasgroup/da-roberta-babe-ft`) was computed for every sentence but was not validated on this corpus, so it is not reported.

@@ -46,14 +46,14 @@ Done:
 - Codebook v1.1 settles the five annotator gaps (D-69); rules updated with tests; all test/dev crash rows relabeled blind (8 of 100 test labels changed; second annotator unchanged). v1.0 metrics kept as `eval/reports/*_v10.csv`.
 - Fuzzy-label rework (D-70, D-71): dev +100 context rows; NLI cutoffs and Snorkel/SetFit thresholds tuned on dev (`eval/tune_fuzzy.py`); SetFit trains at up to 3:1 negatives.
 
-Running (logs in data/logs/):
-- `chain_v15.sh`: waits for CityNews RESCAN_DONE, then `REDO=1 ./run_pipeline.sh` (pipeline_v11.log, prints PIPELINE_DONE: v1.1 rules on all sentences, new articles split and filtered, rescoring), then `./run_v15.sh --sample` (v15_sample.log, prints V15_SAMPLE_DONE).
+## v1.5 run (finished 2026-11-22)
+- Sampling chain finished (V15_SAMPLE_DONE). Topics and sources re-run under D-76/D-77: 1,167 articles in scope; out-of-scope eval rows dropped (D-79).
+- Dev-only fix for `policy_frame` = `other` (frame lexicon cues, NLI hypothesis; D-78); NLI, Snorkel and SetFit re-run.
+- 40 disagreement rows annotated and merged. Scores in `eval/reports/v15_*.csv`; tables in `analysis/tables/v15_*.csv`.
+- Result: SetFit stance and frame rates fail validation and are not findings (D-80); dashboard tab shows them under a warning. Write-up addendum, SUMMARY updated.
 
 Next:
-1. After PIPELINE_DONE: compare v1.1 metrics and rates with v1.0; update writeup tables and SUMMARY.
-2. After V15_SAMPLE_DONE: annotate test_v15 (+ second annotator on 30), dev_v15, dis_test_v15, test_v15_topic, test_v15_source with subagents; merge with `eval.merge_v15`.
-3. Tune v1.5 on dev only if needed, then `./run_v15.sh` (Snorkel/SetFit, score, tables).
-4. Write-up addendum for v1.5; SUMMARY update.
+- Author decision (D-80): keep codebook 9.2 (stance rare, ~1% for transit) or count attributed positions by source role. No further v1.5 work is planned until then.
 
 ## Blockers
 - None.
