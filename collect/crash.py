@@ -281,7 +281,8 @@ CITIES = {
     "vancouver": {
         "own": re.compile(r"vancouver police|\bVPD\b|vancouver fire", re.I),
         "other": re.compile(
-            r"\bRCMP\b|surrey police|delta police|abbotsford police|new westminster police"
+            r"\bRCMP\b|\bMounties\b|surrey police|delta police|abbotsford police"
+            r"|new westminster police"
             r"|port moody police|west vancouver police|victoria police|saanich police",
             re.I,
         ),
@@ -289,9 +290,9 @@ CITIES = {
             r"\b(?:Surrey|Burnaby|Richmond|Coquitlam|North Vancouver|West Vancouver|Delta"
             r"|Langley|Abbotsford|Chilliwack|Maple Ridge|New Westminster|Port Coquitlam"
             r"|Port Moody|Victoria|Kelowna|Kamloops|Nanaimo|Squamish|Whistler|Prince George"
-            r"|Saanich|Seattle|Washington state)\b"
+            r"|Saanich|Seattle|Washington state|Vancouver Island|Metrotown)\b"
         ),
-        "name": re.compile(r"(?<!North )(?<!West )\bVancouver\b"),
+        "name": re.compile(r"(?<!North )(?<!West )\bVancouver\b(?! Island)"),
     },
     "montreal": {
         "own": re.compile(r"montreal police|\bSPVM\b|urgences-sant", re.I),

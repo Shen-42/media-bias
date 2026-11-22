@@ -200,3 +200,14 @@ def test_french_crash_article_scope():
     assert not is_crash_article(car_only, "Collision", "Un conducteur blessé.", "fr")
     assert article_type("Le conducteur accusé de délit de fuite", "", "fr") == "follow_up"
     assert article_type("Une piétonne happée à Montréal", "", "fr") == "initial"
+
+
+def test_vancouver_filter_excludes_island_and_burnaby():
+    from collect.crash import in_city
+
+    assert not in_city("vancouver", "Motorcycle passenger dead after Vancouver Island crash",
+                       "Mounties on Vancouver Island appealed.", True)  # fmt: skip
+    assert not in_city("vancouver", "Man struck by bus near Metrotown",
+                       "A man was struck by a transit bus near Metrotown.", True)  # fmt: skip
+    assert in_city("vancouver", "Pedestrian dies after being hit by SUV in South Vancouver",
+                   "Vancouver police said a pedestrian died.", True)  # fmt: skip
