@@ -28,6 +28,7 @@ FIELDS = {
     "dev_v15_attrib": ["attributed"],  # D-91
     "test_v15_attrib": ["attributed"],
     "measure_v15": [*V15_LABELS, "stance_holder"],  # stance_holder: D-87, merged by --fields
+    "measure_urbanist": [*V15_LABELS, "stance_holder"],  # D-99
     "test_v15_topic": ["bike_lane", "transit"],
     "dev_v15_topic": ["bike_lane", "transit"],
     "test_v15_source": ["speaker", "role"],

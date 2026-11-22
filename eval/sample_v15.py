@@ -256,6 +256,57 @@ def measure_rows(sents: list[dict], rng) -> list[tuple[dict, str]]:
     return out
 
 
+URBANIST_CAP = 300  # per outlet (D-99): random draw when an outlet has more census rows
+
+
+def measure_urbanist(con, rng) -> None:
+    """Bike-infrastructure census sentences from the urbanist outlets (data/compare.sqlite),
+    capped per outlet, for the same annotation as measure_v15 (D-99). One packet pass labels
+    the v1.5 labels and stance_holder together."""
+    meta = _meta(con)
+    sents = [s | {"outlet": meta[s["article_id"]]["outlet"]} for s in v15.v15_sentences(con)]
+    census = [
+        s
+        for s in sents
+        if s["part"] == "body"
+        and (
+            v15.TARGETS["stance_infrastructure"].search(s["text"])
+            or v15.TARGETS["stance_cyclists"].search(s["text"])
+        )
+    ]
+    rows = []
+    for outlet in sorted({s["outlet"] for s in census}):
+        mine = sorted((s for s in census if s["outlet"] == outlet), key=lambda s: s["id"])
+        sample = "census"
+        if len(mine) > URBANIST_CAP:
+            rng.shuffle(mine)
+            mine, sample = mine[:URBANIST_CAP], "census_random"
+        rows += [
+            {"sentence_id": s["id"], "set": "measure", "sample": sample, "part": "body",
+             **meta[s["article_id"]]}
+            for s in mine
+        ]  # fmt: skip
+    path = EVAL / "measure_urbanist.csv"
+    assert not path.exists(), path
+    _write(path, [*SENT_COLS[:-1], "stance_holder", "annotator"], rows)
+    text = {s["id"]: s["text"] for s in census}
+    order = rows[:]
+    rng.shuffle(order)
+    for i in range(0, len(order), PACKET_SIZE):
+        _packet(
+            f"measure_urbanist_{i // PACKET_SIZE:02d}",
+            [
+                {
+                    "sentence_id": r["sentence_id"],
+                    "headline": False,
+                    "sentence": text[r["sentence_id"]],
+                }
+                for r in order[i : i + PACKET_SIZE]
+            ],
+        )
+    print(f"urbanist measure rows: {len(rows)}", flush=True)
+
+
 def measure(con, rng) -> None:
     """Measurement sample (D-85): never used for tuning. Pool and eval rows are not excluded;
     model scoring on it drops pool rows (Snorkel training) and dev rows."""
@@ -434,6 +485,7 @@ def main() -> None:
             "attribution",
             "topic_dev2",
             "source_dev2",
+            "measure_urbanist",
         ],
     )
     ap.add_argument("--db", default=None)
@@ -447,6 +499,7 @@ def main() -> None:
         "attribution": attribution,
         "topic_dev2": topic_dev2,
         "source_dev2": source_dev2,
+        "measure_urbanist": measure_urbanist,
     }[args.stage](con, rng)
 
 

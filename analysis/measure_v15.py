@@ -29,8 +29,8 @@ STANCE = {
 }
 
 
-def load(con) -> pd.DataFrame:
-    gold = {r["sentence_id"]: r for r in read_csv(EVAL / "measure_v15.csv")}
+def load(con, gold_csv: str = "measure_v15.csv") -> pd.DataFrame:
+    gold = {r["sentence_id"]: r for r in read_csv(EVAL / gold_csv)}
     art = {r["id"]: r for r in con.execute("SELECT id, outlet, published FROM articles")}
     stored = {r[0]: r[1] for r in con.execute("SELECT id, text_source FROM sentences")}
     ps = periods()
