@@ -1,4 +1,7 @@
-"""v1.5 aggregate tables (bike lanes and transit), from SetFit labels (the end model, D-72).
+"""v1.5 aggregate tables (bike lanes and transit).
+
+Stance: Snorkel labels on the pool's target-mention stratum, a random sample of target-mention
+sentences (D-84); SetFit stance failed dev validation. Frames: SetFit, diagnosis only (D-80).
 
 Rates are sentence shares with article-cluster bootstrap 95% CIs (analysis.aggregate.rate_ci).
 Every table is split by text_source (quoted, attributed, newsroom); they are never pooled
@@ -63,9 +66,10 @@ def load(con) -> pd.DataFrame:
     lab = {}
     for r in con.execute(
         "SELECT sentence_id, label, value, score, source FROM labels"
-        " WHERE source IN ('setfit','babe')"
+        " WHERE source IN ('setfit','babe','snorkel')"
     ):
-        lab[(r[0], r[1])] = r[3] if r[4] == "babe" else r[2]
+        lab[(r[0], r[1], r[4])] = r[3] if r[4] == "babe" else r[2]
+    pool = {r[0] for r in con.execute("SELECT sentence_id FROM pools WHERE pool='v15'")}
     role = {r[0]: r[1] for r in con.execute("SELECT sentence_id, role FROM v15_sources")}
     ps = periods()
     ts = {r[0]: r[1] for r in con.execute("SELECT id, text_source FROM sentences")}
@@ -82,14 +86,14 @@ def load(con) -> pd.DataFrame:
             "period": period_of(a["published"] or "", ps),
             "text_source": text_source(s, ts.get(s["id"])),
             "source_role": role.get(s["id"]),
-            "loaded_language": lab.get((s["id"], "loaded_language")),
+            "loaded_language": lab.get((s["id"], "loaded_language", "babe")),
         }
-        frame = lab.get((s["id"], "policy_frame"))
+        frame = lab.get((s["id"], "policy_frame", "setfit"))
         for f in lfs_v15.FRAMES:
             r[f"frame_{f}"] = None if frame is None else float(frame == f)
         for label, rx in v15.TARGETS.items():
-            v = lab.get((s["id"], label))
-            has = bool(rx.search(s["text"]))
+            v = lab.get((s["id"], label, "snorkel"))
+            has = bool(rx.search(s["text"])) and s["id"] in pool
             pos, neg = lfs_v15.V15_LABELS[label][:2]
             r[f"{label}_{pos}"] = float(v == pos) if has and v else None
             r[f"{label}_{neg}"] = float(v == neg) if has and v else None

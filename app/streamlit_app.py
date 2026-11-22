@@ -236,10 +236,12 @@ with tab[5]:
 
 with tab[6]:
     st.warning(
-        "v1.5 rates below come from a SetFit model that failed validation (D-80): it labels "
-        "48% of transit-mention sentences with a stance where the annotated test sample has "
-        "1%, and 98% of bike-infrastructure-mention sentences where the sample has 22%. They "
-        "are shown for diagnosis only and are not findings. See the write-up addendum."
+        "Exploratory. Stance shares come from the Snorkel label model on a random sample of "
+        "sentences that name a target (D-84). Its stance precision is about 0.4-0.6, so the "
+        "levels run about twice the annotated rates (transit: 18% vs 9%); compare text "
+        "sources, not levels. Frame shares come from SetFit, which failed validation (D-80), "
+        "and are for diagnosis only. Quoted, attributed and the outlet's own text are kept "
+        "apart: an attributed stance is the source's, not the outlet's. See the write-up."
     )
     topic = st.radio("Topic", ["bike_lane", "transit"], horizontal=True)
     d = table("v15_frames_by_source")
