@@ -42,3 +42,6 @@ Label every line. Output valid JSONL only.
 - **holder** packets (`packet_measure_holder_*.jsonl`, lines with `sentence_id`, `sentence`,
   `headline`): label `stance_holder` (source | outlet | none) under codebook §9.2: who holds
   the position the sentence states toward bike infrastructure, cyclists or transit.
+- **attribution** packets (`packet_*_v15_attrib.jsonl`, lines with `sentence_id`, `sentence`):
+  label `attributed` (true | false) under codebook §3: the sentence reports what a named or
+  described source said, believes, wants or argues, including actions that state a position.

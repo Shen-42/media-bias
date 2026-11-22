@@ -13,12 +13,14 @@ import random
 from pathlib import Path
 
 from common import config, db
-from eval.sample import EVAL, excluded_ids
+from eval.sample import EVAL, excluded_ids, read_csv
 from nlp import v15
 from nlp.labeling import lfs_v15
 
 SENT_COLS = ["sentence_id", "set", "sample", "outlet", "year", "part", *v15.LABELS, "annotator"]
 TOPIC_COLS = ["article_id", "set", "sample", "outlet", "year", "bike_lane", "transit", "annotator"]
+ATTRIB_COLS = ["sentence_id", "set", "sample", "outlet", "year", "part", "attributed", "annotator"]
+ATTRIB_N = 150  # per split (D-91)
 SOURCE_COLS = ["sentence_id", "set", "sample", "outlet", "year", "speaker", "role", "annotator"]
 PACKETS = Path(config.ROOT) / "data" / "eval" / "in"
 
@@ -298,14 +300,99 @@ def measure(con, rng) -> None:
     print(f"measure rows: {len(rows)}", flush=True)
 
 
+def topic_dev2(con, rng) -> None:
+    """Quality check (2026-11-22): 80 more transit-tagged articles for dev topic precision;
+    dev had 1 false positive in 24, too few to find error patterns. Skips topic eval articles."""
+    taken = {
+        r["article_id"]
+        for f in ("dev_v15_topic.csv", "test_v15_topic.csv")
+        for r in read_csv(EVAL / f)
+    }
+    arts = [
+        dict(r)
+        for r in con.execute(
+            "SELECT id, title, text, topic_tags FROM articles WHERE is_toronto=1 AND is_canonical=1"
+        )
+        if "transit" in json.loads(r["topic_tags"] or "[]") and r["id"] not in taken
+    ]
+    rng.shuffle(arts)
+    arts = arts[:80]
+    meta = _meta(con)
+    _write(
+        EVAL / "dev_v15_topic.csv",
+        TOPIC_COLS,
+        [
+            {"article_id": a["id"], "set": "topic", "sample": "transit_tagged", **meta[a["id"]]}
+            for a in arts
+        ],
+    )
+    _packet(
+        "dev_v15_topic2",
+        [
+            {
+                "article_id": a["id"],
+                "headline": a["title"],
+                "lead": "\n".join([p for p in (a["text"] or "").split("\n") if p.strip()][:2]),
+            }
+            for a in arts
+        ],
+    )
+    print(f"topic dev2: {len(arts)} articles", flush=True)
+
+
+def attribution(con, rng) -> None:
+    """D-91: random non-quoted body sentences for the `attributed` rule; dev tunes, test scores.
+    Skips the pool, eval rows, the measurement sample and excluded ids."""
+    taken = (
+        {r[0] for r in con.execute("SELECT sentence_id FROM pools WHERE pool='v15'")}
+        | excluded_ids()
+        | v15.eval_ids()
+        | {r["sentence_id"] for r in read_csv(EVAL / "measure_v15.csv")}
+    )
+    sents = [s for s in v15.v15_sentences(con) if s["part"] == "body" and not s["quoted"]]
+    rng.shuffle(sents)
+    meta = _meta(con)
+    for split in ("dev", "test"):
+        rows = draw(sents, ATTRIB_N, taken, rng)
+        path = EVAL / f"{split}_v15_attrib.csv"
+        assert not path.exists(), path
+        _write(
+            path,
+            ATTRIB_COLS,
+            [
+                {"sentence_id": s["id"], "set": "attrib", "sample": "random", "part": "body"}
+                | meta[s["article_id"]]
+                for s in rows
+            ],
+        )
+        _packet(
+            f"{split}_v15_attrib",
+            [{"sentence_id": s["id"], "sentence": s["text"]} for s in rows],
+        )
+        if split == "test":
+            _packet(
+                "test_v15_attrib_a2",
+                [{"sentence_id": s["id"], "sentence": s["text"]} for s in rows[::5]],
+            )
+    print("attribution samples written", flush=True)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("stage", choices=["sentences", "disagreement", "measure"])
+    ap.add_argument(
+        "stage", choices=["sentences", "disagreement", "measure", "attribution", "topic_dev2"]
+    )
     ap.add_argument("--db", default=None)
     args = ap.parse_args()
     con = db.connect(args.db)
     rng = random.Random(config.load()["eval"]["seed"] + 150)
-    {"sentences": sentences, "disagreement": disagreement, "measure": measure}[args.stage](con, rng)
+    {
+        "sentences": sentences,
+        "disagreement": disagreement,
+        "measure": measure,
+        "attribution": attribution,
+        "topic_dev2": topic_dev2,
+    }[args.stage](con, rng)
 
 
 if __name__ == "__main__":

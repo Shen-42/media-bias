@@ -35,3 +35,13 @@ def test_attribution_positive_and_negative():
     assert is_attributed("Police say a car struck a cyclist.")
     assert is_attributed("According to police, the driver remained.")
     assert not is_attributed("A car struck a cyclist on Bloor.")
+
+
+def test_attributed_includes_reported_positions():
+    # D-91: positions and assessments reported in newsroom text name their holder
+    assert is_attributed("Cycle Toronto argues the law puts lives at risk.")
+    assert is_attributed("Bradford vows to remove the lanes he voted for.")
+    assert is_attributed("Residents are calling for the line to stay underground.")
+    assert is_attributed("The TTC estimates it loses $140 million to fare evasion.")
+    assert not is_attributed("The province removed the lanes on Monday.")
+    assert not is_attributed("Council voted 15-10 on the motion.")

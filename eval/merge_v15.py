@@ -20,10 +20,13 @@ ALLOWED = {k: set(v) for k, v in V15_LABELS.items()} | {
     "transit": {"true", "false"},
     "role": ROLES,
     "stance_holder": {"source", "outlet", "none"},
+    "attributed": {"true", "false"},
 }
 FIELDS = {
     "test_v15": list(V15_LABELS),
     "dev_v15": list(V15_LABELS),
+    "dev_v15_attrib": ["attributed"],  # D-91
+    "test_v15_attrib": ["attributed"],
     "measure_v15": [*V15_LABELS, "stance_holder"],  # stance_holder: D-87, merged by --fields
     "test_v15_topic": ["bike_lane", "transit"],
     "dev_v15_topic": ["bike_lane", "transit"],

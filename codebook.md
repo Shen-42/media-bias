@@ -162,7 +162,7 @@ Deterministic, not a labeling target. Precedence `quoted` > `police_matched` > `
 | `police_matched` | Not quoted, and similarity to the linked police release is above the threshold tuned on the dev set. |
 | `newsroom` | Neither. |
 
-Indirect speech ("Police say a car struck a cyclist") is **not** `quoted`. It goes through release matching, and a separate boolean `attributed` records that the sentence names a source (D-11).
+Indirect speech ("Police say a car struck a cyclist") is **not** `quoted`. It goes through release matching, and a separate boolean `attributed` records that the sentence names a source (D-11). `attributed` is true when a sentence that is not `quoted` reports what a named or described person, group, government or other body said, believes, wants or argues, including actions that state a position ("Police say…"; "The premier argues the lanes cause gridlock"; "Advocates rallied against the removal"; "Bradford vows to remove the lanes"). A sentence that only reports what a source did, with no statement or position ("The province removed the lanes"; "Council voted 15–10"), is not attributed (D-91).
 
 | Value | Positive | Negative |
 |---|---|---|
@@ -392,4 +392,4 @@ Complaints about service quality alone are `none` here; they usually carry the `
 - v1.0 (2026-11-19): "hit-and-run" added as a collision noun (D-31).
 - v1.0 (2026-11-19): resolved all draft flags (D-01 to D-17); added "accident" as a collision noun, the `vru_sentence` unit, `thematic_cue`, `attributed`, `driver_hta_charge`; extended the impact verb list.
 - v1.5 draft (2026-11-20): added Part B (sections 7–9): `topic`, `source_role` (with `agency_staff`, D-63), `policy_frame`, `stance_infrastructure`, `stance_cyclists`, `stance_transit`, and the `loaded_language` feature. Part A unchanged.
-- v1.5 draft, revised 2026-11-22: stance (9.2) now counts a position attributed to a source, not only the sentence's own claim; attributed newsroom sentences are reported as their own text source (D-81). Earlier v1.5 stance labels were made under the old rule. Same day: added the removal rule to 9.2 (D-83). Same day: added `stance_holder` to 9.2, labeled on the measurement sample, because the attributed-sentence detector misses many reported positions (D-87).
+- v1.5 draft, revised 2026-11-22: stance (9.2) now counts a position attributed to a source, not only the sentence's own claim; attributed newsroom sentences are reported as their own text source (D-81). Earlier v1.5 stance labels were made under the old rule. Same day: added the removal rule to 9.2 (D-83). Same day: added `stance_holder` to 9.2, labeled on the measurement sample, because the attributed-sentence detector misses many reported positions (D-87). Same day: spelled out `attributed` (section 3) to include reported positions and position-stating actions (D-91).

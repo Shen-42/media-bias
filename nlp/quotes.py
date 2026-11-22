@@ -7,9 +7,16 @@ paragraph of a multi-paragraph quote, so an unclosed quote runs to the end of it
 import re
 
 OPEN = {"“": "”", '"': '"', "«": "»"}
+# Speech verbs (D-11) plus verbs that report a position or assessment (D-91, tuned on dev).
 ATTRIB_RE = re.compile(
     r"\b(?:said|says|say|told|tells|stated|states|reported|reports|alleged|alleges|confirmed"
-    r"|confirms|added|adds|noted|explained|wrote|claimed|believe[sd]?)\b|according to",
+    r"|confirms|added|adds|noted|explained|wrote|claimed|believe[sd]?"
+    r"|argu(?:e[sd]?|ing)|warn(?:s|ed|ing)?|urg(?:e[sd]?|ing)|vow(?:s|ed)?|pledg(?:e[sd]?)"
+    r"|call(?:s|ed|ing)? (?:on|for)|criticiz\w*|criticis\w*|complain\w*|insist\w*"
+    r"|recommend\w*|suggest(?:s|ed|ing)?|estimat(?:e[sd]|ing)|predict\w*|disagree[sd]?"
+    r"|acknowledg\w*|admit\w*|apologiz\w*|encourag(?:e[sd]?|ing)|advis(?:e[sd]|ing)"
+    r"|worr(?:y|ied|ies)|concerns?|frustrations?|spoken out|spoke out|highlight(?:s|ed)"
+    r"|announc(?:e[sd]|ing)|maintain(?:s|ed)|contend\w*)\b|according to",
     re.I,
 )
 
