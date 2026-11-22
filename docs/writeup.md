@@ -187,24 +187,27 @@ Across all v1.5 sentences, policy frames in 75 random annotated test sentences: 
 | Topic precision, transit | 0.82 (n = 45) | 0.80 (n = 46) |
 | Attribution (`attributed`), precision / recall | 0.93 / 0.73 (n = 150) | 0.92 / 0.66 |
 | Source-role accuracy | 0.60 (n = 53) | 0.62 (n = 53) |
+| Attribution on PolNeAR (public, human-labeled), precision / recall | 0.90 (0.88–0.92) / 0.49 (0.47–0.52), n = 2,275 sentences | not run (D-42) |
 
 Each check used a new dev sample, because the earlier dev rows had been used up by tuning (D-75 to D-77): 80 transit-tagged articles (D-92), 150 sentences for attribution (D-91) and 80 quote units for roles (D-93). Test errors were not used. On the new dev sample the role extractor scored 0.66, against 0.81 on the old dev rows, so the old figure was overfit. The role fixes gained one dev row and lost one test row. The extractor labels 30% of test quote units `unknown`; the annotator, who read the full article, never did. Most remaining errors need the whole article to identify the speaker. Topic recall was not measured.
+
+The PolNeAR check (D-94) is the only component check on human labels in v1.5. PolNeAR (84 test articles from 2016 US election news) marks every attribution, including polls that "show", questions, colons, refusals, endorsements and beliefs. The codebook's `attributed` is narrower, so PolNeAR recall is a lower bound. Precision on human labels (0.90) matches the precision against the LLM annotator (0.93), which supports those labels for this rule. The rule was not changed after the check.
 
 ### Model results
 
 Gold labels came from an LLM annotator. Kappa against a second annotator run (n = 24) is 0.75 for policy frame, 0.78 for transit stance and 1.0 for infrastructure stance (one positive).
 
-| System | Frame accuracy (random, n = 75) | Frame macro-F1 | Transit stance precision / recall (test) |
+| System | Frame accuracy (random, n = 74) | Frame macro-F1 | Transit stance precision / recall (test) |
 |---|---|---|---|
 | Lexicon | 0.17 (29% coverage) | 0.39 | n/a |
-| NLI zero-shot | 0.55 | 0.49 | n/a |
-| Qwen | 0.59 | 0.35 | 1/6, 1/5 |
+| NLI zero-shot | 0.55 | 0.51 | n/a |
+| Qwen | 0.58 | 0.35 | 1/6, 1/5 |
 | Snorkel label model | 0.64 | 0.47 | 3/8, 3/5 |
-| SetFit | 0.48 | 0.36 | 3/47, 3/5 |
+| SetFit | 0.49 | 0.36 | 3/47, 3/5 |
 
 Snorkel labels only the 3,000-sentence pool and overstates stance: on measurement rows in the pool its transit stance precision was 4/15. Its stance tables were dropped (D-88).
 
-SetFit labeled a transit stance on 57% of dev sentences when trained on confident, class-capped Snorkel labels (D-84). Retrained on Snorkel's label for every pool transit sentence, with the real class mix (D-86), it scored dev macro-F1 0.78 at a 0.70 threshold, stable from 0.60 to 0.90, against 0.75 for logistic regression on frozen embeddings and for Snorkel. On 501 held-out measurement rows its precision was 24/39 and recall 24/47. A pass rule fixed before scoring required its stance rate to fall inside the annotated interval overall, per outlet and per text source. It passed everywhere except newsroom text (2.2% against 4.9%, 2.8–8.5), so transit is reported from annotations only. Infrastructure and cyclists got no end model: the census labels every sentence. SetFit frame tables were dropped too; frames are reported from annotations (D-90).
+SetFit labeled a transit stance on 57% of dev sentences when trained on confident, class-capped Snorkel labels (D-84). Retrained on Snorkel's label for every pool transit sentence, with the real class mix (D-86), it scored dev macro-F1 0.78 at a 0.70 threshold, stable from 0.60 to 0.90, against 0.75 for logistic regression on frozen embeddings and for Snorkel. On 490 held-out measurement rows its precision was 21/37 and recall 21/46 (refit after D-92). A pass rule fixed before scoring required its stance rate to fall inside the annotated interval overall, per outlet and per text source. It passed everywhere except newsroom text (1.6% against 4.2%, 2.1–8.0), so transit is reported from annotations only. Infrastructure and cyclists got no end model: the census labels every sentence. SetFit frame tables were dropped too; frames are reported from annotations (D-90).
 
 Two labeling-function problems surfaced on dev and were fixed (D-83). The support/oppose cue words fire on "oppose the removal", which is support, so they were taken out of Snorkel. Qwen made the same error: it read 8 of 11 "against the removal" infrastructure sentences as `oppose`. A removal rule in the prompt cut that to 6 of 11, and a 4B model may not do better. A second prompt revision with removal examples gained one dev sentence, and Qwen also read most neutral removal plans as `oppose`. Snorkel did better on dev without Qwen's infrastructure vote (accuracy 0.62 against 0.50), so that vote was removed (D-89). On test, infrastructure accuracy stayed at 0.94 and macro-F1 moved from 0.71 to 0.66 on few positives.
 

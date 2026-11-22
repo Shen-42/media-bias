@@ -1,0 +1,2 @@
+n_sentences,gold_attributed,pred_attributed,precision,precision_lo,precision_hi,recall,recall_lo,recall_hi,articles
+2275,1388,763,0.8990825688073395,0.8756698276877042,0.918496790294419,0.4942363112391931,0.4679857082953487,0.5205187307155272,84

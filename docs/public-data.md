@@ -33,7 +33,7 @@ The City notes a recent problem transferring KSI data to its Vision Zero dashboa
 ## Recommendation
 
 1. Score the frame systems on the Media Frames Corpus annotations. This is the only public human-labeled set on the same frame scheme. It tests the models, not the LLM annotator.
-2. Score the `attributed` rule on PolNeAR, which is already in the plan.
+2. Score the `attributed` rule on PolNeAR. Done 2026-11-22 (D-94): precision 0.90, recall 0.49 against PolNeAR's broader attribution definition (`eval/polnear_check.py`).
 3. Link v1 crash articles to the TPS KSI records to check severity and road users and to measure which crashes get covered.
 4. For stance and crash grammar there is no public substitute. A small human-labeled sample of this corpus (about 50 sentences per label) remains the only direct check of the LLM annotator.
 

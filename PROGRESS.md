@@ -66,7 +66,9 @@ Done:
 
 - Quality checks done (D-91 attribution, D-92 transit topic, D-93 source roles); public-data research in `docs/public-data.md`.
 
-Next (author's order, 2026-11-22): human-labeled check using public data (`docs/public-data.md`: Media Frames Corpus, PolNeAR, TPS KSI); old list: then quality checks (source roles, transit topic precision, attribution detector recall, human-labeled sample).
+- PolNeAR attribution check done (D-94): precision 0.90, recall 0.49 (`eval/reports/polnear_attribution.csv`). Snorkel and the transit end model refit after D-92; end model still fails validation on newsroom text.
+
+Next (author's order, 2026-11-22): remaining public-data checks (`docs/public-data.md`: Media Frames Corpus, TPS KSI); old list: then quality checks (source roles, transit topic precision, attribution detector recall, human-labeled sample).
 
 ## Blockers
 - None.
