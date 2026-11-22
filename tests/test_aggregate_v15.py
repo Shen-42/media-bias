@@ -26,15 +26,10 @@ def test_build_keeps_text_sources_apart():
             "source_role": "resident" if ts == "quoted" else None,
             "loaded_language": 0.2,
         }
-        for f in A.lfs_v15.FRAMES:
-            r[f"frame_{f}"] = float(f == "safety")
-        for lab in A.v15.TARGETS:
-            for v in A.lfs_v15.V15_LABELS[lab][:2]:
-                r[f"{lab}_{v}"] = 0.0
         rows.append(r)
-    t = A.build(pd.DataFrame(rows))["v15_frames_by_source"]
+    t = A.build(pd.DataFrame(rows))["v15_loaded_language"]
     assert set(t.text_source) == {"quoted", "newsroom"}
-    assert t[t.measure == "frame_safety"].rate.eq(1.0).all()
+    assert t.rate.eq(0.2).all()
 
 
 def test_attributed_newsroom_text_is_its_own_source():

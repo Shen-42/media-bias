@@ -163,7 +163,21 @@ Outlet's own position (`stance_holder` = `outlet`): bike infrastructure CityNews
 
 **Bill 212 periods.** Bike-lane opposition in attributed and newsroom sentences was low while the plan was announced and the law came into force (attributed oppose 3% and 4%, newsroom 5% and 15%). It was higher before the plan (22% and 24%) and after the injunction (attributed 22–27%). This pattern is suggestive only. The period tables hold about 160 pairwise comparisons, so some non-overlapping intervals are expected by chance, and several periods have under 30 sentences per text source.
 
-Policy frames in 75 random annotated test sentences: no policy content 49% (38–60), `other` 15% (8–24), quality of life 13% (7–23), economic 12% (6–21), safety 5% (2–13), political 3% (1–9), legality 3% (1–9). `other` here is mostly transit service reliability, maintenance and project delivery, which the codebook places under capacity and policy evaluation.
+**Policy frames.** Frames come from the same annotated sample (D-90), so they describe sentences that name the target. Annotator agreement on frames is kappa 0.83 (n = 184); the models are the weak point, so no model frame rate is reported.
+
+| Frame | Bike lanes: quoted | attributed | newsroom | Transit: quoted | attributed | newsroom |
+|---|---|---|---|---|---|---|
+| Legality | 7% | 25% | 36% (30–42) | 1% | 2% | 4% |
+| Political | 18% | 24% | 25% | 6% | 4% | 1% |
+| Quality of life | 21% | 16% | 6% | 17% | 10% | 12% |
+| Safety | 20% (15–26) | 7% | 6% | 14% | 12% | 11% |
+| Economic | 4% | 8% | 5% | 16% | 12% | 16% |
+| Other | 24% | 12% | 8% | 21% | 19% | 14% |
+| No policy content | 6% | 7% | 15% | 26% | 42% | 42% |
+
+Bike-lane sentences in the outlets' own text are framed mostly as law and politics. Quoted sources frame them by safety and daily life. Transit sentences are more often plain service news. Legal framing in bike-lane newsroom text moved with Bill 212: 18% (10–27) before the plan and 27% at its announcement, 49% (37–62) while the law was in force, 64% (44–83) under the injunction and 46% after it was struck down, then 26% after the appeal was allowed. Economic framing peaked at the announcement (22%, against 0–3% in other periods). Of 315 period comparisons, 52 have non-overlapping intervals, far more than chance. Outlet comparisons are at chance level (7 of 126), so no outlet differs in framing. A rate of zero gets a 0–0 bootstrap interval, which understates uncertainty in small cells.
+
+Across all v1.5 sentences, policy frames in 75 random annotated test sentences: no policy content 49% (38–60), `other` 15% (8–24), quality of life 13% (7–23), economic 12% (6–21), safety 5% (2–13), political 3% (1–9), legality 3% (1–9). `other` here is mostly transit service reliability, maintenance and project delivery, which the codebook places under capacity and policy evaluation.
 
 ### Components
 
@@ -189,7 +203,7 @@ Gold labels came from an LLM annotator. Kappa against a second annotator run (n 
 
 Snorkel labels only the 3,000-sentence pool and overstates stance: on measurement rows in the pool its transit stance precision was 4/15. Its stance tables were dropped (D-88).
 
-SetFit labeled a transit stance on 57% of dev sentences when trained on confident, class-capped Snorkel labels (D-84). Retrained on Snorkel's label for every pool transit sentence, with the real class mix (D-86), it scored dev macro-F1 0.78 at a 0.70 threshold, stable from 0.60 to 0.90, against 0.75 for logistic regression on frozen embeddings and for Snorkel. On 501 held-out measurement rows its precision was 24/39 and recall 24/47. A pass rule fixed before scoring required its stance rate to fall inside the annotated interval overall, per outlet and per text source. It passed everywhere except newsroom text (2.2% against 4.9%, 2.8–8.5), so transit is reported from annotations only. Infrastructure and cyclists got no end model: the census labels every sentence. Frame shares in the tables still come from SetFit and are diagnosis only (D-80).
+SetFit labeled a transit stance on 57% of dev sentences when trained on confident, class-capped Snorkel labels (D-84). Retrained on Snorkel's label for every pool transit sentence, with the real class mix (D-86), it scored dev macro-F1 0.78 at a 0.70 threshold, stable from 0.60 to 0.90, against 0.75 for logistic regression on frozen embeddings and for Snorkel. On 501 held-out measurement rows its precision was 24/39 and recall 24/47. A pass rule fixed before scoring required its stance rate to fall inside the annotated interval overall, per outlet and per text source. It passed everywhere except newsroom text (2.2% against 4.9%, 2.8–8.5), so transit is reported from annotations only. Infrastructure and cyclists got no end model: the census labels every sentence. SetFit frame tables were dropped too; frames are reported from annotations (D-90).
 
 Two labeling-function problems surfaced on dev and were fixed (D-83). The support/oppose cue words fire on "oppose the removal", which is support, so they were taken out of Snorkel. Qwen made the same error: it read 8 of 11 "against the removal" infrastructure sentences as `oppose`. A removal rule in the prompt cut that to 6 of 11, and a 4B model may not do better. A second prompt revision with removal examples gained one dev sentence, and Qwen also read most neutral removal plans as `oppose`. Snorkel did better on dev without Qwen's infrastructure vote (accuracy 0.62 against 0.50), so that vote was removed (D-89). On test, infrastructure accuracy stayed at 0.94 and macro-F1 moved from 0.71 to 0.66 on few positives.
 

@@ -1,7 +1,8 @@
 """v1.5 aggregate tables (bike lanes and transit).
 
-Frames: SetFit, diagnosis only (D-80). Stance tables come from the annotated measurement
-sample instead (analysis/measure_v15.py, D-88); no model stance passed validation.
+Corpus counts, quoted source roles and the BABE loaded-language score (not validated).
+Stance and frame tables come from the annotated measurement sample instead
+(analysis/measure_v15.py, D-88, D-90); no model stance or frame passed validation.
 
 Rates are sentence shares with article-cluster bootstrap 95% CIs (analysis.aggregate.rate_ci).
 Every table is split by text_source (quoted, attributed, newsroom); they are never pooled
@@ -17,7 +18,6 @@ import pandas as pd
 from analysis.aggregate import TABLES, rates
 from common import config, db
 from nlp import v15
-from nlp.labeling import lfs_v15
 
 TIMELINE = config.ROOT / "analysis" / "timeline_bill212.csv"
 
@@ -64,8 +64,7 @@ def load(con) -> pd.DataFrame:
     }
     lab = {}
     for r in con.execute(
-        "SELECT sentence_id, label, value, score, source FROM labels"
-        " WHERE source IN ('setfit','babe')"
+        "SELECT sentence_id, label, value, score, source FROM labels WHERE source='babe'"
     ):
         lab[(r[0], r[1], r[4])] = r[3] if r[4] == "babe" else r[2]
     role = {r[0]: r[1] for r in con.execute("SELECT sentence_id, role FROM v15_sources")}
@@ -86,24 +85,15 @@ def load(con) -> pd.DataFrame:
             "source_role": role.get(s["id"]),
             "loaded_language": lab.get((s["id"], "loaded_language", "babe")),
         }
-        frame = lab.get((s["id"], "policy_frame", "setfit"))
-        for f in lfs_v15.FRAMES:
-            r[f"frame_{f}"] = None if frame is None else float(frame == f)
         rows.append(r)
     return pd.DataFrame(rows)
 
 
 def build(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
-    frames = [f"frame_{f}" for f in lfs_v15.FRAMES]
     body = df[df.part == "body"]
     out = {
-        "v15_frames_by_source": rates(body, ["topic", "text_source"], frames),
-        "v15_frames_by_outlet": rates(body, ["topic", "text_source", "outlet"], frames),
-        "v15_headline_frames": rates(df[df.part == "headline"], ["topic", "outlet"], frames),
         "v15_loaded_language": rates(body, ["topic", "text_source", "outlet"], ["loaded_language"]),
     }
-    bl = body[body.topic == "bike_lane"]
-    out["v15_bike_lane_by_period"] = rates(bl, ["text_source", "period"], frames)
     quoted = body[body.source_role.notna()]
     out["v15_source_roles"] = (
         quoted.groupby(["topic", "outlet", "source_role"]).size().rename("quotes").reset_index()

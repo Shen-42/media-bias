@@ -1,4 +1,7 @@
-"""v1.5 stance rates from the annotated measurement sample (D-85).
+"""v1.5 stance and policy-frame rates from the annotated measurement sample (D-85, D-90).
+
+Frame rates describe sentences that name the target (bike infrastructure or cyclists for
+the census; transit for the transit draw), not every sentence in an article.
 
 Bike infrastructure and cyclists: census of body sentences naming the target, so rates cover
 every such sentence. Transit: 200 random transit-mention body sentences per outlet; the
@@ -17,6 +20,7 @@ from analysis.aggregate_v15 import period_of, periods, text_source
 from common import db
 from eval.sample import EVAL, read_csv
 from nlp import v15
+from nlp.labeling.lfs_v15 import FRAMES
 
 STANCE = {
     "stance_infrastructure": ("support", "oppose"),
@@ -45,6 +49,8 @@ def load(con) -> pd.DataFrame:
             "census": "census" in g["sample"],
             "transit_random": "transit_random" in g["sample"],
         }
+        for f in FRAMES:
+            r[f"frame_{f}"] = float(g["policy_frame"] == f)
         for label, (pos, neg) in STANCE.items():
             has = bool(v15.TARGETS[label].search(s["text"]))
             r[f"{label}_{pos}"] = float(g[label] == pos) if has else None
@@ -108,9 +114,27 @@ def build(df: pd.DataFrame, weights: dict[str, float]) -> dict[str, pd.DataFrame
     tr = df[df.transit_random]
     tcols = cols("stance_transit")
     out["v15m_transit_by_outlet"] = rates(tr, ["text_source", "outlet"], tcols)
+    frames = [f"frame_{f}" for f in FRAMES]
+    out["v15m_infra_frames_by_source"] = rates(census, ["text_source"], frames)
+    out["v15m_infra_frames_by_outlet"] = rates(census, ["text_source", "outlet"], frames)
+    out["v15m_infra_frames_by_period"] = rates(census, ["text_source", "period"], frames)
+    out["v15m_transit_frames_by_outlet"] = rates(tr, ["text_source", "outlet"], frames)
+    out["v15m_transit_frames_by_source"] = _weighted(tr, frames, weights)
+    out["v15m_transit_by_source"] = _weighted(tr, tcols, weights)
+    # Outlet-held stance (D-87): not split by text_source, since it already says whose voice.
+    out["v15m_outlet_held"] = pd.concat(
+        [
+            rates(census, ["outlet"], ["stance_infrastructure_outlet_held"]),
+            rates(tr, ["outlet"], ["stance_transit_outlet_held"]),
+        ]
+    )
+    return out
+
+
+def _weighted(tr: pd.DataFrame, values: list[str], weights: dict[str, float]) -> pd.DataFrame:
     rows = []
     for src, sub in tr.groupby("text_source"):
-        for v in tcols:
+        for v in values:
             est, lo, hi, n = stratified_rate(sub, v, weights)
             rows.append(
                 {
@@ -123,15 +147,7 @@ def build(df: pd.DataFrame, weights: dict[str, float]) -> dict[str, pd.DataFrame
                     "n_articles": sub.dropna(subset=[v]).article_id.nunique(),
                 }
             )
-    out["v15m_transit_by_source"] = pd.DataFrame(rows)
-    # Outlet-held stance (D-87): not split by text_source, since it already says whose voice.
-    out["v15m_outlet_held"] = pd.concat(
-        [
-            rates(census, ["outlet"], ["stance_infrastructure_outlet_held"]),
-            rates(tr, ["outlet"], ["stance_transit_outlet_held"]),
-        ]
-    )
-    return out
+    return pd.DataFrame(rows)
 
 
 def main() -> None:

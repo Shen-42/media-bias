@@ -62,7 +62,9 @@ Done:
 
 - Step 3 done: Qwen's infrastructure stance vote removed from Snorkel (D-89); prompt stays v3.
 
-Next (author's order, 2026-11-22): 4. policy-frame label; then quality checks (source roles, transit topic precision, attribution detector recall, human-labeled sample).
+- Step 4 done: frames reported from the measurement sample; SetFit frame tables dropped (D-90).
+
+Next (author's order, 2026-11-22): then quality checks (source roles, transit topic precision, attribution detector recall, human-labeled sample).
 
 ## Blockers
 - None.

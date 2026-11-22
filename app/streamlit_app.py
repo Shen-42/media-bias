@@ -41,6 +41,8 @@ LABELS = {
     "frame_quality_of_life": "Quality-of-life frame",
     "frame_political": "Political frame",
     "frame_legality": "Legal frame",
+    "frame_other": "Other frame (opinion, capacity, delivery)",
+    "frame_none": "No policy content",
     "stance_infrastructure_support": "Supports bike lanes",
     "stance_infrastructure_oppose": "Opposes bike lanes",
     "stance_cyclists_positive": "Positive about cyclists",
@@ -60,6 +62,8 @@ V15_FRAMES = [
     "frame_quality_of_life",
     "frame_political",
     "frame_legality",
+    "frame_other",
+    "frame_none",
 ]
 
 
@@ -244,8 +248,8 @@ with tab[6]:
         "Stance shares come from LLM annotator labels on a measurement sample (D-85): every "
         "body sentence naming bike lanes or cyclists, and 200 random transit sentences per "
         "outlet. They are shares of sentences that name the target. No model stance passed "
-        "validation (D-88). Frame shares come from SetFit, which failed validation (D-80), "
-        "and are for diagnosis only. Quoted, attributed and unattributed text are kept "
+        "validation (D-88). Policy frames come from the same annotated sample (D-90). "
+        "Quoted, attributed and unattributed text are kept "
         "apart; 'newsroom' text is mostly reported positions the attribution detector "
         "missed, so the outlet's own positions are shown separately. See the write-up."
     )
@@ -267,15 +271,14 @@ with tab[6]:
     if not d.empty:
         st.subheader("Outlet's own stated position (annotated)")
         st.altair_chart(ci_chart(d, "outlet", [f"stance_{key}_outlet_held"]))
-    d = table("v15_frames_by_source")
+    d = table(f"v15m_{m}_frames_by_source")
     if not d.empty:
-        st.subheader("Policy frames by text source (SetFit, diagnosis only)")
-        st.altair_chart(ci_chart(d[d["topic"] == topic], "text_source", V15_FRAMES))
-    d = table("v15_frames_by_outlet")
+        st.subheader("Policy frames by text source (annotated)")
+        st.altair_chart(ci_chart(d, "text_source", V15_FRAMES))
+    d = table(f"v15m_{m}_frames_by_outlet")
     if not d.empty:
-        st.subheader("Reporter text by outlet")
-        d = d[(d["topic"] == topic) & (d["text_source"] == "newsroom")]
-        st.altair_chart(ci_chart(d, "outlet", V15_FRAMES))
+        st.subheader("Policy frames in newsroom text by outlet (annotated)")
+        st.altair_chart(ci_chart(d[d["text_source"] == "newsroom"], "outlet", V15_FRAMES))
     if topic == "bike_lane":
         d = table("v15m_infra_by_period")
         if not d.empty:
@@ -283,6 +286,11 @@ with tab[6]:
             for ts in ("quoted", "attributed", "newsroom"):
                 st.caption(ts)
                 st.altair_chart(ci_chart(d[d["text_source"] == ts], "period", stance))
+        d = table("v15m_infra_frames_by_period")
+        if not d.empty:
+            st.subheader("Bill 212 periods: frames in newsroom text (annotated)")
+            d = d[d["text_source"] == "newsroom"]
+            st.altair_chart(ci_chart(d, "period", ["frame_legality", "frame_economic"]))
             st.dataframe(pd.read_csv(ROOT / "analysis" / "timeline_bill212.csv"), hide_index=True)
     st.subheader("Who is quoted")
     d = table("v15_source_roles")
