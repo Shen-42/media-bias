@@ -28,7 +28,8 @@ CRASH_HEADLINE_RE = re.compile(
 
 INCIDENT_HEADLINE_RE = re.compile(
     r"\b(?:stab\w*|robb\w*|knifepoint|gunpoint|assault\w*|arrest\w*|charged|suspect\w*|wanted"
-    r"|shoot\w*|shot|pushed|graffiti|hate-motivated|homicide|murder\w*|in custody)\b",
+    r"|shoot\w*|shot|pushed|graffiti|hate-motivated|homicide|murder\w*|in custody"
+    r"|attack\w*|sentenc\w*|killing|threaten\w*|mischief|vandal\w*|damaged)\b",  # quality check
     re.I,
 )
 

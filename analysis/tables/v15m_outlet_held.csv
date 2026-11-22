@@ -2,6 +2,6 @@ outlet,measure,rate,ci_lo,ci_hi,n_units,n_articles
 citynews,stance_infrastructure_outlet_held,0.011111111111111112,0.002330463993281545,0.02200759327898692,450,55
 ctv,stance_infrastructure_outlet_held,0.0,0.0,0.0,212,34
 global,stance_infrastructure_outlet_held,0.0,0.0,0.0,293,32
-citynews,stance_transit_outlet_held,0.005,0.0,0.01587512664640324,200,162
+citynews,stance_transit_outlet_held,0.005025125628140704,0.0,0.01554606541450777,199,161
 ctv,stance_transit_outlet_held,0.0,0.0,0.0,200,136
-global,stance_transit_outlet_held,0.005,0.0,0.018518518518518517,200,124
+global,stance_transit_outlet_held,0.005291005291005291,0.0,0.016042780748663103,189,119

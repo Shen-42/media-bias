@@ -54,3 +54,14 @@ def test_incident_on_transit_is_not_transit():
         assert topics(title, "") == [], title
     assert topics("TTC fares to rise 10 cents in January", "") == ["transit"]
     assert topics("TTC adds overnight buses after riders raise safety concerns", "") == ["transit"]
+
+
+def test_more_incident_headlines_are_not_transit():
+    # quality check 2026-11-22 (dev topic sample 2)
+    for title in [
+        "Man who attacked women on the subway sentenced to life",
+        "Bus shelters damaged in overnight mischief spree",
+        "Four males threaten TTC employee at Warden Station",
+    ]:
+        assert topics(title, "") == [], title
+    assert topics("TTC board approves new subway cars", "") == ["transit"]
