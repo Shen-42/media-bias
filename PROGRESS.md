@@ -52,13 +52,12 @@ Done:
 - 40 disagreement rows annotated and merged. Scores in `eval/reports/v15_*.csv`; tables in `analysis/tables/v15_*.csv`.
 - Result: SetFit stance and frame rates fail validation and are not findings (D-80); dashboard tab shows them under a warning. Write-up addendum, SUMMARY updated.
 
-- Author chose to count attributed positions as stance (D-81): codebook 9.2, LFs, NLI hypotheses, Qwen prompt v15_v2 and the `attributed` text source changed. Not yet re-run or re-labeled.
+- Author chose to count attributed positions as stance (D-81). Stance relabeled blind on test, dev and the second annotator; dev stance sample added (D-82); removal rule, Qwen prompt v15_v3 and a no-cue `none` LF (D-83); NLI, Qwen, Snorkel and SetFit re-run.
+- Stance rates are reported from annotated samples; stance tables come from Snorkel on the pool's random target-mention stratum (D-84), exploratory. Write-up addendum, SUMMARY and dashboard warning rewritten. Pushed.
 
-Next (D-81):
-1. Re-annotate stance blind on test_v15, dev_v15 (and the 30-row second annotator) under the revised codebook.
-2. Re-run `nlp.v15 --steps nli qwen` (new hypotheses and prompt; Qwen is the long step), then `snorkel setfit`.
-3. Check stance LFs and SetFit on dev; score on test; rebuild tables.
-4. Rewrite the v1.5 addendum, SUMMARY and the dashboard warning from the new scores.
+Open (v1.5):
+- Outlet and Bill 212 period comparisons need more annotated target-mention sentences (several hundred per cell) or a better end model.
+- SetFit training underrepresents `none`; a calibrated end model would let stance cover the whole corpus.
 
 ## Blockers
 - None.

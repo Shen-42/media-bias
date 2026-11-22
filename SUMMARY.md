@@ -57,11 +57,10 @@ Global's in-scope count drops sharply after mid-2024. Global stopped publishing 
 
 # Summary: v1.5 (bike lanes and transit)
 
-v1.5 did not produce reportable stance or frame rates. The SetFit model labels a stance on 48% of sentences naming transit, while the annotated test sample has 1% (1 of 69; 95% CI 0–8%). Under codebook 9.2, a newsroom sentence that reports a position neutrally is `none`, and most transit coverage is service and project news. Full details are in the addendum to `docs/writeup.md`.
+When a Toronto news sentence names transit, 9% (95% CI 6–13%, n = 207) take a position on it, nearly all support. The positions come mostly from sources: 18% of quoted sentences and 14% of attributed newsroom sentences, against 3% of the outlet's own text. Bike infrastructure sentences take a position more often (48%, 28–68), from only 21 sentences. These rates come from annotated random samples. Stance counts a source's stated position (codebook 9.2, revised by the author, D-81). Full details are in the addendum to `docs/writeup.md`.
 
 - Corpus: 1,167 Toronto articles (105 bike lane, 1,062 transit), 26,637 sentences.
-- Topic precision on test: bike lane 0.97 (n = 29), transit 0.80 (n = 46), after dev-only fixes (D-76).
-- Source-role accuracy on test: 0.62 (n = 53); 32% of quote units get `unknown` (D-77).
+- Topic precision on test: bike lane 0.97 (n = 29), transit 0.80 (n = 46). Source-role accuracy: 0.62 (n = 53).
 - Frames in 75 random annotated sentences: no policy content 49%, `other` 15%, quality of life 13%, economic 12%, safety, political and legality 3–5% each.
-- Model ranking on test frames: Snorkel (accuracy 0.60) > NLI (0.55) > Qwen (0.52) > SetFit (0.45). Dev gave the same order.
-- Open item for the author: whether to count positions held by sources (attributed stance), which would change codebook 9.2 (D-80).
+- Models: the Snorkel label model is the best system on dev and test (frame accuracy 0.64; transit stance 0.88 on dev), but it overstates stance about 2× (transit 18% vs 9%). Its tables show where stance sits, not how much. SetFit failed validation for both frames and stance (D-80, D-84).
+- Not possible with these samples: outlet comparisons and Bill 212 period comparisons.
