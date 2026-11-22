@@ -63,18 +63,29 @@ def main() -> None:
     ap.add_argument("name", choices=list(FIELDS))
     ap.add_argument("labels")
     ap.add_argument("--second", action="store_true")
+    ap.add_argument(
+        "--fields", nargs="+", help="merge only these labels (e.g. a stance redo, D-81)"
+    )
     args = ap.parse_args()
     labels = [json.loads(x) for x in Path(args.labels).read_text().splitlines() if x.strip()]
+    fields = FIELDS[args.name]
+    if args.fields:
+        assert set(args.fields) <= set(fields), args.fields
+        fields = args.fields
     if args.second:
-        src = {r["sentence_id"]: r for r in read_csv(EVAL / "test_v15.csv")}
-        rows = [{k: src[lab["sentence_id"]].get(k, "") for k in SENT_COLS} for lab in labels]
-        merge(rows, labels, FIELDS["test_v15"], "claude-subagent-2")
-        _write(EVAL / "test_v15_annotator2.csv", rows)
+        path = EVAL / "test_v15_annotator2.csv"
+        if args.fields and path.exists():
+            rows = read_csv(path)
+        else:
+            src = {r["sentence_id"]: r for r in read_csv(EVAL / "test_v15.csv")}
+            rows = [{k: src[lab["sentence_id"]].get(k, "") for k in SENT_COLS} for lab in labels]
+        merge(rows, labels, fields, "claude-subagent-2")
+        _write(path, rows)
         print(f"annotator 2: {len(rows)} rows")
         return
     path = EVAL / f"{args.name}.csv"
     rows = read_csv(path)
-    n = merge(rows, labels, FIELDS[args.name], "claude-subagent")
+    n = merge(rows, labels, fields, "claude-subagent")
     _write(path, rows)
     print(f"merged {n} rows into {path}")
 
