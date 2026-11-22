@@ -128,12 +128,12 @@ stance_infrastructure,qwen,disagreement,none,0.9642857142857143,0.75,0.84375,36
 stance_infrastructure,qwen,disagreement,oppose,0.0,0.0,0.0,1
 stance_infrastructure,qwen,disagreement,support,0.0,0.0,0.0,2
 stance_infrastructure,snorkel,random,none,1.0,1.0,1.0,75
-stance_infrastructure,snorkel,random_target,none,0.9782608695652174,0.9782608695652174,0.9782608695652174,46
-stance_infrastructure,snorkel,random_target,oppose,0.5,1.0,0.6666666666666666,2
+stance_infrastructure,snorkel,random_target,none,0.9583333333333334,1.0,0.9787234042553191,46
+stance_infrastructure,snorkel,random_target,oppose,0.5,0.5,0.5,2
 stance_infrastructure,snorkel,random_target,support,1.0,0.3333333333333333,0.5,3
-stance_infrastructure,snorkel,disagreement,none,0.9714285714285714,0.9444444444444444,0.9577464788732394,36
+stance_infrastructure,snorkel,disagreement,none,0.9459459459459459,0.9722222222222222,0.958904109589041,36
 stance_infrastructure,snorkel,disagreement,oppose,0.0,0.0,0.0,1
-stance_infrastructure,snorkel,disagreement,support,0.0,0.0,0.0,2
+stance_infrastructure,snorkel,disagreement,support,0.5,0.5,0.5,2
 stance_infrastructure,setfit,random,none,1.0,1.0,1.0,75
 stance_infrastructure,setfit,random_target,none,0.9787234042553191,1.0,0.989247311827957,46
 stance_infrastructure,setfit,random_target,oppose,0.0,0.0,0.0,2

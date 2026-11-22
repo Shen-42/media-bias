@@ -24,8 +24,8 @@ stance_infrastructure,qwen,random,False,75,1.0,0.92,0.9583333333333334,0.9208633
 stance_infrastructure,qwen,random_target,True,51,1.0,0.9019607843137255,0.6423280423280423,0.43933904259991224,0.9297491039426523
 stance_infrastructure,qwen,disagreement,False,39,1.0,0.6923076923076923,0.28125,0.25136612021857924,0.8695652173913043
 stance_infrastructure,snorkel,random,False,75,1.0,1.0,1.0,1.0,1.0
-stance_infrastructure,snorkel,random_target,True,51,1.0,0.9411764705882353,0.714975845410628,0.4559139784946236,1.0
-stance_infrastructure,snorkel,disagreement,False,39,1.0,0.8717948717948718,0.3192488262910798,0.2995169082125604,0.9736842105263158
+stance_infrastructure,snorkel,random_target,True,51,1.0,0.9411764705882353,0.6595744680851063,0.32280701754385965,1.0
+stance_infrastructure,snorkel,disagreement,False,39,1.0,0.9230769230769231,0.48630136986301364,0.3055555555555555,1.0
 stance_infrastructure,setfit,random,False,75,1.0,1.0,1.0,1.0,1.0
 stance_infrastructure,setfit,random_target,True,51,1.0,0.9411764705882353,0.5202252944188428,0.3263888888888889,1.0
 stance_infrastructure,setfit,disagreement,False,39,1.0,0.9743589743589743,0.6,0.5,1.0

@@ -177,10 +177,6 @@ def lf_infra_nli(x):
     return _nli(x, "stance_infrastructure")
 
 
-def lf_infra_qwen(x):
-    return _qwen(x)
-
-
 lf_cyclists_no_target = _no_target(CYCLIST_TARGET)
 lf_cyclists_cues = _cues(CYCLIST_TARGET, CYCLIST_POS_RE, CYCLIST_NEG_RE, "positive", "negative")
 
@@ -215,7 +211,7 @@ LFS = {
         lf_infra_no_target,
         lf_infra_no_cue,
         lf_infra_nli,
-        lf_infra_qwen,
+        # no Qwen vote: it reads removal plans and "against the removal" as oppose (D-89)
     ],
     "stance_cyclists": [
         lf_cyclists_no_target,

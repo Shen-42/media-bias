@@ -60,7 +60,9 @@ Done:
 - `stance_holder` added to codebook 9.2 and labeled on the 512 stance rows (D-87): 7 are the outlet's own position.
 - Transit stance end model (D-86): SetFit on the real Snorkel class mix, `python -m nlp.v15 --steps endmodel`; failed the pre-set validation on newsroom text (`eval/validate_endmodel.py`, D-88). Snorkel stance tables dropped.
 
-Next (author's order, 2026-11-22): 3. Qwen removal errors; 4. policy-frame label; then quality checks (source roles, transit topic precision, attribution detector recall, human-labeled sample).
+- Step 3 done: Qwen's infrastructure stance vote removed from Snorkel (D-89); prompt stays v3.
+
+Next (author's order, 2026-11-22): 4. policy-frame label; then quality checks (source roles, transit topic precision, attribution detector recall, human-labeled sample).
 
 ## Blockers
 - None.

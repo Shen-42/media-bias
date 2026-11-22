@@ -85,3 +85,9 @@ def test_no_cue_means_none():
     assert L.lf_infra_no_cue(x("Council will vote Thursday.")) is None  # no target
     assert L.lf_transit_no_cue(x("The subway line opens in 2031.")) == "none"
     assert L.lf_transit_no_cue(x("The subway is a waste of money.")) is None
+
+
+def test_infrastructure_stance_has_no_qwen_vote():
+    # D-89: Qwen misreads removal plans and opposition to removal; dev favoured dropping it
+    names = [f.__name__ for f in L.LFS["stance_infrastructure"]]
+    assert not any("qwen" in n for n in names)
