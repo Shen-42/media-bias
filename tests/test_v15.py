@@ -37,3 +37,11 @@ def test_babe_label_choice_and_score():
     assert v15._biased_label({"0": "LABEL_0", "1": "LABEL_1"}) == "LABEL_1"
     out = [{"label": "LABEL_0", "score": 0.3}, {"label": "LABEL_1", "score": 0.7}]
     assert v15._score(out, "LABEL_1") == 0.7
+
+
+def test_end_model_value_threshold():
+    vals = ["support", "oppose", "none"]
+    assert v15.end_model_value([0.75, 0.05, 0.2], vals, 0.7) == "support"
+    assert v15.end_model_value([0.1, 0.72, 0.18], vals, 0.7) == "oppose"
+    # most likely class is a stance but below the threshold: none
+    assert v15.end_model_value([0.6, 0.0, 0.4], vals, 0.7) == "none"

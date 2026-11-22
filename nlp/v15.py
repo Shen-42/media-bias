@@ -281,6 +281,46 @@ def step_snorkel_setfit(con, with_setfit: bool) -> None:
         del model
 
 
+def end_model_value(p, values, t: float) -> str:
+    """Stance only when the larger stance probability reaches t; otherwise `none` (D-86)."""
+    k = max((j for j, v in enumerate(values) if v != "none"), key=lambda j: p[j])
+    return values[k] if p[k] >= t else "none"
+
+
+def step_endmodel(con) -> None:
+    """Transit stance end model (D-86): SetFit on Snorkel's argmax for every pool transit-mention
+    sentence (real class mix), applied to every transit-mention sentence; source `endmodel`."""
+    from nlp.labeling import setfit_train
+
+    label = "stance_transit"
+    values = lfs_v15.V15_LABELS[label]
+    t = config.load()["fuzzy"][f"endmodel_{label}"]
+    rx = TARGETS[label]
+    pool = {r[0] for r in con.execute("SELECT sentence_id FROM pools WHERE pool='v15'")}
+    snork = {
+        r[0]: r[1]
+        for r in con.execute(
+            "SELECT sentence_id, value FROM labels WHERE label=? AND source='snorkel'", (label,)
+        )
+    }
+    scope = [s for s in v15_sentences(con) if rx.search(s["text"])]
+    train = [s for s in scope if s["id"] in pool and s["id"] in snork]
+    ys = [values.index(snork[s["id"]]) for s in train]
+    print(f"endmodel {label}: train counts {_counts(ys, values)}", flush=True)
+    assert sorted(set(ys)) == list(range(len(values))), "every class needs training rows"
+    model = setfit_train.train([s["text"] for s in train], ys)
+    probs = model.predict_proba([s["text"] for s in scope], batch_size=64)
+    con.execute("DELETE FROM labels WHERE label=? AND source='endmodel'", (label,))
+    con.executemany(
+        "INSERT OR REPLACE INTO labels VALUES (?,?,?,?,?,?)",
+        [
+            (s["id"], label, "endmodel", end_model_value(p, values, t), float(max(p[:2])), "SetFit")
+            for s, p in zip(scope, probs.tolist(), strict=True)
+        ],
+    )
+    con.commit()
+
+
 def _counts(ys, values) -> dict[str, int]:
     return {values[k]: ys.count(k) for k in sorted(set(ys))}
 

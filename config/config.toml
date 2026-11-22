@@ -89,6 +89,8 @@ snorkel_vru_conduct_detail = 0.7
 snorkel_thematic_cue = 0.95
 setfit_vru_conduct_detail = 0.95
 setfit_thematic_cue = 0.95
+# v1.5 transit stance end model (D-86): stance when max(p support, p oppose) >= this; dev macro-F1.
+endmodel_stance_transit = 0.7
 
 [eval]
 seed = 20261119
