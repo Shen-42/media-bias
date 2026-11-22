@@ -29,6 +29,14 @@ In-scope crash articles per outlet per quarter (`analysis/tables/coverage_by_qua
 
 Coverage is uneven. CTV's sitemaps start in 2025. Global's in-scope count falls from about 30 a quarter to under 10 after mid-2024, because Global stopped running routine Toronto crash briefs (see Limitations). Outlet comparisons use only the window all three outlets cover (2025-01-14 to 2026-10-29), which holds only 31 Global articles. Trends are reported within each outlet. The before/after Bill 212 comparison uses only outlets with articles on both sides of 2024-11-25.
 
+### Coverage against police records
+
+About a quarter of pedestrian and cyclist crashes that police record as killing or seriously injuring someone got an initial report in the corpus: 173 of 661 (26%, 23–30) from 2023 to October 2026. Fatal crashes were covered more often than serious-injury crashes (53%, 44–63, against 21%, 18–25), and pedestrian crashes more often than cyclist crashes (30%, 26–34, against 15%, 10–21). Police records come from the City of Toronto KSI open dataset (D-95).
+
+An initial report links to a collision when it was published 0–2 days after it and names both streets of the collision's location. All 25 links in a random sample were the same crash. These are lower bounds: a report that names only one street, or a crash the corpus filter missed, does not link, and collection gaps (CTV before 2025, Global after mid-2024) lower the rate in those years. Year-to-year changes therefore say more about collection than about newsrooms.
+
+The 257 linked reports also check two article labels against police records. `road_users` agreed on pedestrian and on cyclist involvement for 253 of 257 (98%). `severity` agreed on fatal or not for 231 of 257 (90%, 86–93). In 22 of the 26 disagreements the report described an injury and police recorded a death, which fits a victim who died after the first report rather than a labeling error. Police records are a check, not ground truth: a York University study found that they undercount pedestrian and cyclist injuries.
+
 ## Key results
 
 Crash-sentence rates by text source (`overall_by_text_source.csv`). Quoted text is scored separately and left out here.
@@ -218,4 +226,4 @@ Two labeling-function problems surfaced on dev and were fixed (D-83). The suppor
 - Every gold label came from LLM annotators reading the codebook, with two runs of the same model as the agreement check.
 - The incident-headline rule removed one true bike lane article in the dev sample ("arrested as … bike lane removal protests continue").
 - Bike lane coverage is small (105 articles, 955 sentences that name bike infrastructure), so some Bill 212 periods have under 30 sentences per text source.
-- The BABE loaded-language score (`mediabiasgroup/da-roberta-babe-ft`) was computed for every sentence but not validated on this corpus, so it is not reported.
+- The BABE loaded-language score (`mediabiasgroup/da-roberta-babe-ft`) was computed for every sentence but is not reported. On BABE's own test split it scored macro-F1 0.82 and AUC 0.94 and under-predicted bias (41% against 56%), but the model may have been trained on those sentences, and it has not been checked on local transport news (D-96).

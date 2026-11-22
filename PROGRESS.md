@@ -68,7 +68,9 @@ Done:
 
 - PolNeAR attribution check done (D-94): precision 0.90, recall 0.49 (`eval/reports/polnear_attribution.csv`). Snorkel and the transit end model refit after D-92; end model still fails validation on newsroom text.
 
-Next (author's order, 2026-11-22): remaining public-data checks (`docs/public-data.md`: Media Frames Corpus, TPS KSI); old list: then quality checks (source roles, transit topic precision, attribution detector recall, human-labeled sample).
+- KSI link done (D-95): 26% of pedestrian/cyclist KSI crashes covered; road_users 98%, severity 90% agreement. BABE test split done (D-96): macro-F1 0.82 (upper bound). Media Frames Corpus check skipped (D-97: needs LexisNexis account).
+
+Next (author's order, 2026-11-22): human-labeled sample of this corpus by the author (stance, crash grammar); old list: then quality checks (source roles, transit topic precision, attribution detector recall, human-labeled sample).
 
 ## Blockers
 - None.

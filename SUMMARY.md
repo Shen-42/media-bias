@@ -28,6 +28,7 @@ Toronto crash coverage mostly describes the impact as something that happened to
 - Police-matched sentences use the active voice about three times as often as newsroom sentences (30% vs 11%).
 - Headlines lean further toward the victim than body text.
 - No outlet differs from another: all intervals overlap.
+- Against police records (City of Toronto KSI data), 26% (23–30) of pedestrian and cyclist crashes that killed or seriously injured someone got an initial report in the corpus: 53% of fatal and 21% of serious-injury crashes. On 257 linked reports, `road_users` agreed with police on 98% and `severity` on 90%; most severity disagreements are victims who died after the first report (D-95).
 
 ## Evaluation
 

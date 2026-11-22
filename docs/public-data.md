@@ -32,9 +32,10 @@ The City notes a recent problem transferring KSI data to its Vision Zero dashboa
 
 ## Recommendation
 
-1. Score the frame systems on the Media Frames Corpus annotations. This is the only public human-labeled set on the same frame scheme. It tests the models, not the LLM annotator.
+1. Score the frame systems on the Media Frames Corpus annotations. Not done (D-97): the repo is deprecated and the article text needs LexisNexis Academic access through an account. SemEval-2023 Task 3, the other news set with this frame scheme, needs a registration form. If you have library access to LexisNexis, this can be revisited.
 2. Score the `attributed` rule on PolNeAR. Done 2026-11-22 (D-94): precision 0.90, recall 0.49 against PolNeAR's broader attribution definition (`eval/polnear_check.py`).
-3. Link v1 crash articles to the TPS KSI records to check severity and road users and to measure which crashes get covered.
+3. Link v1 crash articles to the KSI records. Done 2026-11-22 (D-95, `analysis/ksi_link.py`): 26% of pedestrian and cyclist KSI crashes got an initial report; `road_users` agreed with police on 98% of linked reports, `severity` on 90%. The data came from the City of Toronto Open Data portal (Open Government Licence - Toronto), not the TPS portal.
+5. BABE test split: done (D-96, `eval/babe_check.py`): macro-F1 0.82, an upper bound because the model may have trained on it.
 4. For stance and crash grammar there is no public substitute. A small human-labeled sample of this corpus (about 50 sentences per label) remains the only direct check of the LLM annotator.
 
 ## Sources
