@@ -35,7 +35,7 @@ TASKS = {
         "fields": {"vru_conduct_detail": [True, False], "thematic_cue": [True, False]},
     },
     "v15": {
-        "prompt": "v15_v1.txt",
+        "prompt": "v15_v2.txt",
         "fields": {
             "policy_frame": [
                 "economic",

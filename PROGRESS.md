@@ -52,8 +52,13 @@ Done:
 - 40 disagreement rows annotated and merged. Scores in `eval/reports/v15_*.csv`; tables in `analysis/tables/v15_*.csv`.
 - Result: SetFit stance and frame rates fail validation and are not findings (D-80); dashboard tab shows them under a warning. Write-up addendum, SUMMARY updated.
 
-Next:
-- Author decision (D-80): keep codebook 9.2 (stance rare, ~1% for transit) or count attributed positions by source role. No further v1.5 work is planned until then.
+- Author chose to count attributed positions as stance (D-81): codebook 9.2, LFs, NLI hypotheses, Qwen prompt v15_v2 and the `attributed` text source changed. Not yet re-run or re-labeled.
+
+Next (D-81):
+1. Re-annotate stance blind on test_v15, dev_v15 (and the 30-row second annotator) under the revised codebook.
+2. Re-run `nlp.v15 --steps nli qwen` (new hypotheses and prompt; Qwen is the long step), then `snorkel setfit`.
+3. Check stance LFs and SetFit on dev; score on test; rebuild tables.
+4. Rewrite the v1.5 addendum, SUMMARY and the dashboard warning from the new scores.
 
 ## Blockers
 - None.

@@ -343,7 +343,12 @@ Decision rule: when a sentence carries two frames, use the one in the main claus
 
 ### 9.2 Stance labels
 
-Each stance label names one target. A sentence gets a value for every target; most sentences are `none` for most targets. Stance is the position the sentence expresses or reports as its own claim. Reporting that someone else holds a position, in neutral words, is `none` for a newsroom sentence ("The province says the lanes slow traffic" is `none`; the quote itself, if quoted, carries the stance).
+Each stance label names one target. A sentence gets a value for every target; most sentences are `none` for most targets. Stance is the position the sentence states, either as its own claim or as the stated position of a named or described source (a person, group, government or other body). A position reported in neutral words still counts: "The province says the lanes slow traffic" is `oppose`.
+
+- A stance needs an evaluation or an explicit position: the target is good or bad, works or fails, is needed or wasteful, or someone supports, opposes, praises, criticizes, or calls for or against it.
+- Plans, actions, votes, schedules and facts with no stated evaluation are `none` ("The province plans to remove the lanes"; "Council voted 15–10 on the motion").
+- Whose stance it is comes from where the sentence sits, not from the label: quoted text (`text_source` = `quoted`), attributed newsroom text (a newsroom sentence that names its source), and the outlet's own unattributed text are reported separately. An attributed stance is the source's position, never the outlet's.
+- Report the position as stated. Do not judge whether the source is right.
 
 #### 9.2.1 `stance_infrastructure` (`support` | `oppose` | `none`): toward cycling infrastructure
 
@@ -351,7 +356,7 @@ Each stance label names one target. A sentence gets a value for every target; mo
 |---|---|---|
 | `support` | "\"These lanes save lives,\" a cyclist said." / "The lanes have made the street safer for everyone." | "The lanes cost $5 million." (`none`, a fact without evaluation) |
 | `oppose` | "\"The lanes have choked this street,\" a driver said." / "The lanes have been a disaster for local shops." | "The province plans to remove the lanes." (`none`) |
-| `none` | "Council will vote on the lanes Thursday." / "The province says the lanes slow traffic." | Either positive above |
+| `none` | "Council will vote on the lanes Thursday." / "The ministry said the work will start in May." | Either positive above, or "The province says the lanes slow traffic." (`oppose`) |
 
 #### 9.2.2 `stance_cyclists` (`positive` | `negative` | `none`): toward cyclists as people
 
@@ -369,8 +374,8 @@ Complaints about service quality alone are `none` here; they usually carry the `
 
 | Value | Positive | Negative |
 |---|---|---|
-| `support` | "\"The city needs this line,\" a resident said." / "The extension will finally give the east end real transit." | "The line opens in 2031." (`none`) |
-| `oppose` | "\"This subway is a waste of money,\" a councillor said." / "The project will tear up the neighbourhood for years for little gain." | "The project is behind schedule." (`none`) |
+| `support` | "\"The city needs this line,\" a resident said." / "The extension will finally give the east end real transit." / "The mayor says the city needs more express buses." | "The line opens in 2031." (`none`) |
+| `oppose` | "\"This subway is a waste of money,\" a councillor said." / "The project will tear up the neighbourhood for years for little gain." / "Residents' groups argue the line should stay underground." | "The project is behind schedule." (`none`) |
 | `none` | "The TTC board meets Tuesday." / "Buses were delayed by 20 minutes." | Either positive above |
 
 ### 9.3 Feature, not a label
@@ -385,3 +390,4 @@ Complaints about service quality alone are `none` here; they usually carry the `
 - v1.0 (2026-11-19): "hit-and-run" added as a collision noun (D-31).
 - v1.0 (2026-11-19): resolved all draft flags (D-01 to D-17); added "accident" as a collision noun, the `vru_sentence` unit, `thematic_cue`, `attributed`, `driver_hta_charge`; extended the impact verb list.
 - v1.5 draft (2026-11-20): added Part B (sections 7–9): `topic`, `source_role` (with `agency_staff`, D-63), `policy_frame`, `stance_infrastructure`, `stance_cyclists`, `stance_transit`, and the `loaded_language` feature. Part A unchanged.
+- v1.5 draft, revised 2026-11-22: stance (9.2) now counts a position attributed to a source, not only the sentence's own claim; attributed newsroom sentences are reported as their own text source (D-81). Earlier v1.5 stance labels were made under the old rule.

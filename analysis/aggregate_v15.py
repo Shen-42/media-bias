@@ -1,7 +1,8 @@
 """v1.5 aggregate tables (bike lanes and transit), from SetFit labels (the end model, D-72).
 
 Rates are sentence shares with article-cluster bootstrap 95% CIs (analysis.aggregate.rate_ci).
-Every table is split by text_source; quoted and newsroom text are never pooled (CLAUDE.md).
+Every table is split by text_source (quoted, attributed, newsroom); they are never pooled
+(CLAUDE.md, D-81).
 Stance shares use only sentences that mention the stance target.
 Bill 212 periods come from analysis/timeline_bill212.csv.
 """
@@ -42,6 +43,18 @@ def period_of(date: str, ps: list[tuple[str, str]]) -> str:
     return name
 
 
+def text_source(s: dict, stored: str | None) -> str:
+    """quoted > attributed (newsroom sentence naming its source) > stored (newsroom).
+
+    Attributed stance is the source's position, not the outlet's (codebook 9.2, D-81).
+    """
+    if s["quoted"]:
+        return "quoted"
+    if s["attributed"]:
+        return "attributed"
+    return stored or "newsroom"
+
+
 def load(con) -> pd.DataFrame:
     art = {
         r["id"]: r
@@ -67,7 +80,7 @@ def load(con) -> pd.DataFrame:
             "part": s["part"],
             "topic": "bike_lane" if "bike_lane" in tags else "transit",
             "period": period_of(a["published"] or "", ps),
-            "text_source": "quoted" if s["quoted"] else (ts.get(s["id"]) or "newsroom"),
+            "text_source": text_source(s, ts.get(s["id"])),
             "source_role": role.get(s["id"]),
             "loaded_language": lab.get((s["id"], "loaded_language")),
         }

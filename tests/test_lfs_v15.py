@@ -38,11 +38,15 @@ def test_no_target_means_none():
     assert L.lf_transit_no_target(x("The bike lanes opened in 2023.")) == "none"
 
 
-def test_reported_position_in_newsroom_text_is_none():
-    s = "The province says the lanes slow traffic."
-    assert L.lf_infra_reported(x(s, attributed=True)) == "none"
-    assert L.lf_infra_reported(x(s, quoted=True, attributed=True)) is None
-    assert L.lf_infra_reported(x("The lanes slow traffic.")) is None
+def test_attributed_position_counts_as_stance():
+    # codebook 9.2 (D-81): a source's stated position is stance, even outside quotes
+    s = "The province says the lanes have been a disaster for local shops."
+    assert L.lf_infra_cues(x(s, attributed=True)) == "oppose"
+    assert L.lf_transit_cues(
+        x("The mayor said she supports the subway extension.", attributed=True)
+    ) == ("support")
+    # a plan with no evaluation stays unlabeled
+    assert L.lf_infra_cues(x("The province plans to remove the lanes.", attributed=True)) is None
 
 
 def test_stance_cues_are_symmetric():

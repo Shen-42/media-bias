@@ -60,19 +60,27 @@ HYPOTHESES: dict[str, list[tuple[str, str]]] = {
         ("none", "This sentence states a time, place, or event with no policy content."),
     ],
     "stance_infrastructure": [
-        ("support", "This sentence speaks in favour of bike lanes."),
-        ("oppose", "This sentence speaks against bike lanes."),
-        ("none", "This sentence takes no position on bike lanes."),
+        ("support", "This sentence says bike lanes are good, or that someone supports them."),
+        ("oppose", "This sentence says bike lanes are bad, or that someone opposes them."),
+        ("none", "This sentence states no one's view of bike lanes."),
     ],
     "stance_cyclists": [
-        ("positive", "This sentence describes cyclists favourably."),
-        ("negative", "This sentence describes cyclists unfavourably."),
-        ("none", "This sentence does not judge cyclists."),
+        ("positive", "This sentence describes cyclists favourably, or reports someone doing so."),
+        ("negative", "This sentence describes cyclists unfavourably, or reports someone doing so."),
+        ("none", "This sentence states no one's judgment of cyclists."),
     ],
     "stance_transit": [
-        ("support", "This sentence speaks in favour of a transit project or transit funding."),
-        ("oppose", "This sentence speaks against a transit project or transit funding."),
-        ("none", "This sentence takes no position on transit projects or funding."),
+        (
+            "support",
+            "This sentence says a transit project or transit funding is good, or that someone "
+            "supports it.",
+        ),
+        (
+            "oppose",
+            "This sentence says a transit project or transit funding is bad, or that someone "
+            "opposes it.",
+        ),
+        ("none", "This sentence states no one's view of transit projects or funding."),
     ],
 }
 

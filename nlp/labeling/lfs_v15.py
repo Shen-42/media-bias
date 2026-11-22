@@ -142,15 +142,6 @@ def _no_target(target: re.Pattern):
     return lf
 
 
-def _reported_none(x):
-    """Codebook 9.2: a newsroom sentence that reports a position in neutral words is none."""
-    if x.get("quoted") or not x.get("attributed"):
-        return ABSTAIN
-    if SUPPORT_RE.search(x["text"]) or OPPOSE_RE.search(x["text"]):
-        return ABSTAIN
-    return "none"
-
-
 def _cues(target: re.Pattern, pos: re.Pattern, neg: re.Pattern, pv: str, nv: str):
     def lf(x):
         t = x["text"]
@@ -159,15 +150,13 @@ def _cues(target: re.Pattern, pos: re.Pattern, neg: re.Pattern, pv: str, nv: str
         p, n = bool(pos.search(t)), bool(neg.search(t))
         if p == n:
             return ABSTAIN
-        if not x.get("quoted") and x.get("attributed"):
-            return ABSTAIN  # reported speech: leave to the reported-speech rule
+        # Attributed positions count as stance (codebook 9.2, D-81).
         return pv if p else nv
 
     return lf
 
 
 lf_infra_no_target = _no_target(INFRA_TARGET)
-lf_infra_reported = _reported_none
 lf_infra_cues = _cues(INFRA_TARGET, SUPPORT_RE, OPPOSE_RE, "support", "oppose")
 
 
@@ -180,7 +169,6 @@ def lf_infra_qwen(x):
 
 
 lf_cyclists_no_target = _no_target(CYCLIST_TARGET)
-lf_cyclists_reported = _reported_none
 lf_cyclists_cues = _cues(CYCLIST_TARGET, CYCLIST_POS_RE, CYCLIST_NEG_RE, "positive", "negative")
 
 
@@ -193,7 +181,6 @@ def lf_cyclists_qwen(x):
 
 
 lf_transit_no_target = _no_target(TRANSIT_TARGET)
-lf_transit_reported = _reported_none
 lf_transit_cues = _cues(TRANSIT_TARGET, SUPPORT_RE, OPPOSE_RE, "support", "oppose")
 
 
@@ -209,21 +196,18 @@ LFS = {
     "policy_frame": [lf_frame_lexicon, lf_frame_schedule_none, lf_frame_nli, lf_frame_qwen],
     "stance_infrastructure": [
         lf_infra_no_target,
-        lf_infra_reported,
         lf_infra_cues,
         lf_infra_nli,
         lf_infra_qwen,
     ],
     "stance_cyclists": [
         lf_cyclists_no_target,
-        lf_cyclists_reported,
         lf_cyclists_cues,
         lf_cyclists_nli,
         lf_cyclists_qwen,
     ],
     "stance_transit": [
         lf_transit_no_target,
-        lf_transit_reported,
         lf_transit_cues,
         lf_transit_nli,
         lf_transit_qwen,

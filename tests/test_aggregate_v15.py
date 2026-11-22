@@ -35,3 +35,10 @@ def test_build_keeps_text_sources_apart():
     t = A.build(pd.DataFrame(rows))["v15_frames_by_source"]
     assert set(t.text_source) == {"quoted", "newsroom"}
     assert t[t.measure == "frame_safety"].rate.eq(1.0).all()
+
+
+def test_attributed_newsroom_text_is_its_own_source():
+    # codebook 9.2 (D-81): a source's position reported by the newsroom is not the outlet's
+    assert A.text_source({"quoted": 1, "attributed": 1}, "quoted") == "quoted"
+    assert A.text_source({"quoted": 0, "attributed": 1}, "newsroom") == "attributed"
+    assert A.text_source({"quoted": 0, "attributed": 0}, "newsroom") == "newsroom"
