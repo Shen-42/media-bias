@@ -154,21 +154,60 @@ def streets(text: str) -> set[str]:
     return out
 
 
-def is_crash_article(crash_sents: list[str], title: str, text: str) -> bool:
+# French equivalents for French-language outlets (codebook 10.1, D-101).
+VRU_WORD_FR_RE = re.compile(
+    r"\b(?:piétonne?|cycliste|vélo|bicyclette|trottinette|marcheuse|marcheur|brigadière"
+    r"|brigadier)s?\b|\bà pied\b",
+    re.I,
+)
+_PERSON_FR = (
+    r"(?:homme|femme|garçon|fille|fillette|enfant|adolescente?|aînée?|personne|dame|jeune"
+    r"|élève|octogénaire|septuagénaire|sexagénaire|\d+ ans)s?"
+)
+_STRIKE_FR = r"(?:happée?s?|heurtée?s?|frappée?s?|percutée?s?|renversée?s?|fauchée?s?)"
+STRUCK_PERSON_FR_RE = re.compile(rf"\b{_PERSON_FR}\b[^.;]{{0,80}}?\b{_STRIKE_FR}\b", re.I)
+OCCUPANT_FR_RE = re.compile(r"passag[eè]re?s?|occupante?s?|motocycliste|au volant", re.I)
+MOTOR_FR_RE = re.compile(
+    r"\b(?:conductrice|conducteur|automobiliste|chauffeur|chauffeuse|camionneur|voiture"
+    r"|véhicule|auto|automobile|camion|camionnette|fourgonnette|autobus|tramway|taxi|moto"
+    r"|motocyclette|vus)s?\b|délit de fuite",
+    re.I,
+)
+FOLLOW_UP_FR_RE = re.compile(
+    r"\baccusée?s?\b|\bidentifiée?s?\b|\bvigile\b|\btribunal\b|\bprocès\b|\bcondamnée?\b"
+    r"|\bhommage\b|\bcoupable\b|\barrêtée?s?\b|\bfamille de\b|vélo fantôme|\bdeuil\b"
+    r"|\bse rend\b",
+    re.I,
+)
+ROUNDUP_FR_RE = re.compile(
+    r"(?:deux|plusieurs|trois) (?:collisions|accidents)|(?:collisions|accidents) distincts",
+    re.I,
+)
+
+
+def is_crash_article(crash_sents: list[str], title: str, text: str, lang: str = "en") -> bool:
     """In scope (D-01): a crash sentence naming a VRU, and a motor vehicle in the article."""
     if not crash_sents:
         return False
     joined = " ".join(crash_sents)
+    if lang == "fr":
+        vru = VRU_WORD_FR_RE.search(joined) or (
+            STRUCK_PERSON_FR_RE.search(joined) and not OCCUPANT_FR_RE.search(joined)
+        )
+        return bool(vru and MOTOR_FR_RE.search(f"{title} {text}"))
     vru = VRU_WORD_RE.search(joined) or (
         STRUCK_PERSON_RE.search(joined) and not OCCUPANT_RE.search(joined)
     )
     return bool(vru and MOTOR_RE.search(f"{title} {text}"))
 
 
-def article_type(title: str, text: str) -> str:
-    if ROUNDUP_RE.search(f"{title} {text[:800]}"):
+def article_type(title: str, text: str, lang: str = "en") -> str:
+    roundup, follow = (
+        (ROUNDUP_FR_RE, FOLLOW_UP_FR_RE) if lang == "fr" else (ROUNDUP_RE, FOLLOW_UP_RE)
+    )
+    if roundup.search(f"{title} {text[:800]}"):
         return "roundup"
-    if FOLLOW_UP_RE.search(title or ""):
+    if follow.search(title or ""):
         return "follow_up"
     return "initial"
 
@@ -312,9 +351,10 @@ def main() -> None:
         ]
         title, text = a["title"] or "", a["text"] or ""
         city = outlets.get(a["outlet"], {}).get("city", "toronto")
+        lang = outlets.get(a["outlet"], {}).get("language", "en")
         # in the comparison databases, is_toronto means "in the outlet's city" (D-100)
         tor = in_city(city, title, text, local=a["outlet"] in LOCAL_OUTLETS | CITY_LOCAL)
-        crash_ok = is_crash_article(crash, title, text)
+        crash_ok = is_crash_article(crash, title, text, lang)
         rec = {
             "id": a["id"],
             "outlet": a["outlet"],
@@ -324,7 +364,7 @@ def main() -> None:
             "severity": severity(title, text),
             "road_users": road_users(" ".join(crash) + " " + title, text),
             "hit_and_run": bool(lx.FLED_RE.search(f"{title} {text}")),
-            "article_type": article_type(title, text),
+            "article_type": article_type(title, text, lang),
             "streets": streets(f"{title}\n{text[:1500]}"),
             "release_id": None,
             "release_score": None,

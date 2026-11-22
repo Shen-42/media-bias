@@ -187,3 +187,16 @@ def test_global_section_assigns_comparison_outlet():
     assert outlet_for("Cyclist hit - BC | Globalnews.ca") == "global_van"
     assert outlet_for("Man struck - Montreal | Globalnews.ca") == "global_mtl"
     assert outlet_for("Man struck - Toronto | Globalnews.ca") is None
+
+
+def test_french_crash_article_scope():
+    from collect.crash import article_type, is_crash_article
+
+    sents = ["Une piétonne a été happée par une voiture mardi soir."]
+    assert is_crash_article(sents, "Piétonne happée", "Une voiture a happé une femme.", "fr")
+    struck = ["Une femme de 70 ans a été happée mardi."]
+    assert is_crash_article(struck, "Collision", "Le conducteur est resté sur place.", "fr")
+    car_only = ["Deux voitures sont entrées en collision sur l'autoroute 40."]
+    assert not is_crash_article(car_only, "Collision", "Un conducteur blessé.", "fr")
+    assert article_type("Le conducteur accusé de délit de fuite", "", "fr") == "follow_up"
+    assert article_type("Une piétonne happée à Montréal", "", "fr") == "initial"
