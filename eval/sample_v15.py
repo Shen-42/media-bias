@@ -225,14 +225,87 @@ def disagreement(con, rng) -> None:
     print(f"disagreement rows: {len(rows)}", flush=True)
 
 
+MEASURE_TRANSIT = 200  # random transit-mention body sentences per outlet (D-85)
+PACKET_SIZE = 100
+
+
+def measure_rows(sents: list[dict], rng) -> list[tuple[dict, str]]:
+    """Every body sentence naming bike infrastructure or cyclists (`census`), plus
+    MEASURE_TRANSIT random transit-mention body sentences per outlet (`transit_random`).
+    A sentence in both gets `census+transit_random`. `sents` carry an `outlet` key."""
+    body = [s for s in sents if s["part"] == "body"]
+    census = {
+        s["id"]
+        for s in body
+        if v15.TARGETS["stance_infrastructure"].search(s["text"])
+        or v15.TARGETS["stance_cyclists"].search(s["text"])
+    }
+    transit = [s for s in body if v15.TARGETS["stance_transit"].search(s["text"])]
+    rng.shuffle(transit)
+    drawn: set[str] = set()
+    for outlet in sorted({s["outlet"] for s in transit}):
+        mine = [s["id"] for s in transit if s["outlet"] == outlet]
+        drawn |= set(mine[:MEASURE_TRANSIT])
+    out = []
+    for s in body:
+        tags = [t for t, ids in (("census", census), ("transit_random", drawn)) if s["id"] in ids]
+        if tags:
+            out.append((s, "+".join(tags)))
+    return out
+
+
+def measure(con, rng) -> None:
+    """Measurement sample (D-85): never used for tuning. Pool and eval rows are not excluded;
+    model scoring on it drops pool rows (Snorkel training) and dev rows."""
+    meta = _meta(con)
+    sents = [s | {"outlet": meta[s["article_id"]]["outlet"]} for s in v15.v15_sentences(con)]
+    rows = [
+        {
+            "sentence_id": s["id"],
+            "set": "measure",
+            "sample": sample,
+            "part": s["part"],
+            **meta[s["article_id"]],
+        }
+        for s, sample in measure_rows(sents, rng)
+    ]
+    path = EVAL / "measure_v15.csv"
+    assert not path.exists(), path
+    _write(path, SENT_COLS, rows)
+    text = {s["id"]: s["text"] for s in sents}
+    order = rows[:]
+    rng.shuffle(order)
+    for i in range(0, len(order), PACKET_SIZE):
+        _packet(
+            f"measure_v15_{i // PACKET_SIZE:02d}",
+            [
+                {
+                    "sentence_id": r["sentence_id"],
+                    "headline": False,
+                    "sentence": text[r["sentence_id"]],
+                }
+                for r in order[i : i + PACKET_SIZE]
+            ],
+        )
+    second = order[:: max(1, len(order) // PACKET_SIZE)][:PACKET_SIZE]
+    _packet(
+        "measure_v15_a2",
+        [
+            {"sentence_id": r["sentence_id"], "headline": False, "sentence": text[r["sentence_id"]]}
+            for r in second
+        ],
+    )
+    print(f"measure rows: {len(rows)}", flush=True)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("stage", choices=["sentences", "disagreement"])
+    ap.add_argument("stage", choices=["sentences", "disagreement", "measure"])
     ap.add_argument("--db", default=None)
     args = ap.parse_args()
     con = db.connect(args.db)
     rng = random.Random(config.load()["eval"]["seed"] + 150)
-    {"sentences": sentences, "disagreement": disagreement}[args.stage](con, rng)
+    {"sentences": sentences, "disagreement": disagreement, "measure": measure}[args.stage](con, rng)
 
 
 if __name__ == "__main__":

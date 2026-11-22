@@ -129,7 +129,7 @@ Fevyer & Aldred (2022) studied fatal-crash reporting in the London *Evening Stan
 
 ## Addendum: bike lane and transit coverage (v1.5)
 
-When a Toronto news sentence names transit, about 1 in 11 takes a position on it (9%, 95% CI 6–13%, n = 207), and nearly all of those positions are support (16 support, 2 oppose). Positions come mostly from sources. The stance rate is 18% (9–32) in quotes and 14% (7–26) in newsroom sentences that attribute a view to a source, but 3% (1–9) in the outlet's own unattributed text. Sentences that name bike infrastructure take a position more often (48%, 28–68), but that estimate rests on 21 sentences. These rates come from annotated random samples, not from a model. The trained model failed validation, and the Snorkel label model overstates stance by about 2×.
+Positions on bike lanes and transit in Toronto news almost always belong to sources, not to the outlets. Of 512 annotated sentences that state a position, 7 state it as the outlet's own claim (1.4%). Among all 955 body sentences that name bike infrastructure, 0.5% carry the outlet's own position (CityNews 5 of 450, CTV 0 of 212, Global 0 of 293). Positions from sources are common: 68% (61–76) of quoted sentences that name bike infrastructure take one, 45% (38–51) of attributed sentences and 36% (31–41) of other newsroom sentences, split between support and oppose about 3 to 2. Transit positions are rarer and almost all support: 26% (17–35) of quoted transit sentences, 6% (3–9) of attributed and 5% (2–8) of other newsroom sentences. All of these rates come from annotated sentences (D-85), not from a model. No model stance passed validation (D-88).
 
 ### Stance definition
 
@@ -141,18 +141,27 @@ Codebook 9.2 was revised at the author's request (D-81): a position attributed t
 
 ### Annotated rates
 
-Stance rates pool the random target-mention rows from dev (150, drawn for D-82) and test (random and random_target rows). The annotator labeled them blind to every model. Dev rows were used to tune labeling functions, but their gold labels were not changed, so they still estimate prevalence.
+The measurement sample (D-85) holds every body sentence that names bike infrastructure or cyclists (1,013 sentences) and 200 random transit-mention body sentences per outlet (600). An annotator subagent labeled all of them blind to every model. A second run on 100 rows agreed with kappa 0.94 for infrastructure stance, 1.0 for transit stance and 0.76 for policy frame. A second pass labeled who holds each stated position (`stance_holder`, D-87): a second run agreed on 60 of 60.
 
-| Target | Text source | Stance rate (95% CI) |
-|---|---|---|
-| Transit | all | 18/207 = 9% (6–13) |
-| Transit | quoted | 7/40 = 18% (9–32) |
-| Transit | attributed | 7/51 = 14% (7–26) |
-| Transit | outlet's own text | 4/116 = 3% (1–9) |
-| Bike infrastructure | all | 10/21 = 48% (28–68) |
-| Cyclists | all | 0/6 |
+The `stance_holder` label was added because the attributed-sentence detector misses many reported positions. Most "newsroom" sentences with a stance report what a named group or person did or said ("Cycling advocates rally at High Park in opposition to…", "The premier complained that some of these bike lanes create gridlock"). Newsroom text with a stance is therefore not the outlet's voice. Only `stance_holder` = `outlet` is.
 
-The samples are too small to compare outlets or Bill 212 periods. Most transit sentences are service and project news, which carry no position.
+Shares of body sentences that name the target, with article-cluster bootstrap 95% CIs. Transit rates weight each outlet by its share of transit sentences.
+
+| Target | Text source | n | Any position | Support | Oppose |
+|---|---|---|---|---|---|
+| Bike infrastructure | quoted | 221 | 68% (61–76) | 41% | 27% |
+| Bike infrastructure | attributed | 244 | 45% (38–51) | 26% | 18% |
+| Bike infrastructure | other newsroom | 490 | 36% (31–41) | 22% | 14% |
+| Transit | quoted | 115 | 26% (17–35) | 26% | 0% |
+| Transit | attributed | 208 | 6% (3–9) | 5% | 1% |
+| Transit | other newsroom | 277 | 5% (2–8) | 5% | 0% |
+| Cyclists | all three | 127 | 5 sentences | 4 | 1 |
+
+Outlet's own position (`stance_holder` = `outlet`): bike infrastructure CityNews 1.1% (0.2–2.2, n = 450), CTV 0 of 212, Global 0 of 293; transit CityNews 1 of 200, Global 1 of 200, CTV 0 of 200. With counts this small, no outlet differs from another.
+
+**Outlets.** Outlets differ in how often their bike-lane sentences carry a source's position. CityNews quoted sentences take one 80% (71–88) of the time against 54% (38–68) at CTV, and its newsroom sentences 42% (34–51) against 27% (20–34). Global sits between them, overlapping both. For transit, every outlet interval overlaps (quoted: CityNews 33%, CTV 19%, Global 15%). These are differences in which positions get reported, not in the outlets' own views.
+
+**Bill 212 periods.** Bike-lane opposition in attributed and newsroom sentences was low while the plan was announced and the law came into force (attributed oppose 3% and 4%, newsroom 5% and 15%). It was higher before the plan (22% and 24%) and after the injunction (attributed 22–27%). This pattern is suggestive only. The period tables hold about 160 pairwise comparisons, so some non-overlapping intervals are expected by chance, and several periods have under 30 sentences per text source.
 
 Policy frames in 75 random annotated test sentences: no policy content 49% (38–60), `other` 15% (8–24), quality of life 13% (7–23), economic 12% (6–21), safety 5% (2–13), political 3% (1–9), legality 3% (1–9). `other` here is mostly transit service reliability, maintenance and project delivery, which the codebook places under capacity and policy evaluation.
 
@@ -178,16 +187,17 @@ Gold labels came from an LLM annotator. Kappa against a second annotator run (n 
 | Snorkel label model | 0.64 | 0.47 | 3/8, 3/5 |
 | SetFit | 0.48 | 0.36 | 3/47, 3/5 |
 
-On dev random transit rows, Snorkel scored accuracy 0.88 and macro-F1 0.79, against 0.51 and 0.46 for SetFit. That ranking set the choice of Snorkel before test was rescored (D-84). Snorkel labels only the 3,000-sentence pool, but the pool's 1,500 target-mention sentences are a random sample, so its rates there are sample estimates. They still run high. Snorkel puts transit stance at 18% (16–20) against the annotated 9%, because its stance precision is about 0.4–0.6. The Snorkel tables in `analysis/tables/v15_stance_*.csv` and the dashboard show the same ordering as the annotated rates (quoted 29% support, attributed 13%, outlet's own text 9%), so they can show where stance sits but not how much there is.
+Snorkel labels only the 3,000-sentence pool and overstates stance: on measurement rows in the pool its transit stance precision was 4/15. Its stance tables were dropped (D-88).
 
-SetFit labels a transit stance on 57% of dev sentences. Its training set, drawn from confident Snorkel labels, holds far fewer `none` examples than the data does, and a decision threshold did not fix this in a stable way. Frame shares in the tables still come from SetFit and are diagnosis only (D-80).
+SetFit labeled a transit stance on 57% of dev sentences when trained on confident, class-capped Snorkel labels (D-84). Retrained on Snorkel's label for every pool transit sentence, with the real class mix (D-86), it scored dev macro-F1 0.78 at a 0.70 threshold, stable from 0.60 to 0.90, against 0.75 for logistic regression on frozen embeddings and for Snorkel. On 501 held-out measurement rows its precision was 24/39 and recall 24/47. A pass rule fixed before scoring required its stance rate to fall inside the annotated interval overall, per outlet and per text source. It passed everywhere except newsroom text (2.2% against 4.9%, 2.8–8.5), so transit is reported from annotations only. Infrastructure and cyclists got no end model: the census labels every sentence. Frame shares in the tables still come from SetFit and are diagnosis only (D-80).
 
 Two labeling-function problems surfaced on dev and were fixed (D-83). The support/oppose cue words fire on "oppose the removal", which is support, so they were taken out of Snorkel. Qwen made the same error: it read 8 of 11 "against the removal" infrastructure sentences as `oppose`. A removal rule in the prompt cut that to 6 of 11, and a 4B model may not do better.
 
 ### Limitations specific to v1.5
 
-- Annotated samples are small: 207 transit and 21 bike infrastructure sentences. Outlet and period comparisons need several times more.
+- Transit rates rest on 600 annotated sentences (200 per outlet) out of 9,210. Period comparisons for transit were not attempted.
+- The attributed-sentence detector misses many reported positions, so `attributed` and `newsroom` text both mostly carry sources' views (D-87).
 - Every gold label came from LLM annotators reading the codebook, with two runs of the same model as the agreement check.
 - The incident-headline rule removed one true bike lane article in the dev sample ("arrested as … bike lane removal protests continue").
-- Bike lane coverage is small (105 articles), so the Bill 212 period comparison planned in PLAN.md has few sentences per period.
+- Bike lane coverage is small (105 articles, 955 sentences that name bike infrastructure), so some Bill 212 periods have under 30 sentences per text source.
 - The BABE loaded-language score (`mediabiasgroup/da-roberta-babe-ft`) was computed for every sentence but not validated on this corpus, so it is not reported.

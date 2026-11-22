@@ -55,9 +55,12 @@ Done:
 - Author chose to count attributed positions as stance (D-81). Stance relabeled blind on test, dev and the second annotator; dev stance sample added (D-82); removal rule, Qwen prompt v15_v3 and a no-cue `none` LF (D-83); NLI, Qwen, Snorkel and SetFit re-run.
 - Stance rates are reported from annotated samples; stance tables come from Snorkel on the pool's random target-mention stratum (D-84), exploratory. Write-up addendum, SUMMARY and dashboard warning rewritten. Pushed.
 
-Open (v1.5):
-- Outlet and Bill 212 period comparisons need more annotated target-mention sentences (several hundred per cell) or a better end model.
-- SetFit training underrepresents `none`; a calibrated end model would let stance cover the whole corpus.
+## v1.5 measurement (2026-11-22)
+- Measurement sample `eval/measure_v15.csv` (D-85): 1,613 body sentences annotated (census of bike infrastructure/cyclist sentences, 200 transit per outlet); second annotator on 100. Tables `analysis/tables/v15m_*.csv` from `analysis/measure_v15.py`; dashboard v1.5 tab reads them.
+- `stance_holder` added to codebook 9.2 and labeled on the 512 stance rows (D-87): 7 are the outlet's own position.
+- Transit stance end model (D-86): SetFit on the real Snorkel class mix, `python -m nlp.v15 --steps endmodel`; failed the pre-set validation on newsroom text (`eval/validate_endmodel.py`, D-88). Snorkel stance tables dropped.
+
+Next (author's order, 2026-11-22): 3. Qwen removal errors; 4. policy-frame label; then quality checks (source roles, transit topic precision, attribution detector recall, human-labeled sample).
 
 ## Blockers
 - None.

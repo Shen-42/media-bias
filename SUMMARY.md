@@ -57,10 +57,11 @@ Global's in-scope count drops sharply after mid-2024. Global stopped publishing 
 
 # Summary: v1.5 (bike lanes and transit)
 
-When a Toronto news sentence names transit, 9% (95% CI 6–13%, n = 207) take a position on it, nearly all support. The positions come mostly from sources: 18% of quoted sentences and 14% of attributed newsroom sentences, against 3% of the outlet's own text. Bike infrastructure sentences take a position more often (48%, 28–68), from only 21 sentences. These rates come from annotated random samples. Stance counts a source's stated position (codebook 9.2, revised by the author, D-81). Full details are in the addendum to `docs/writeup.md`.
+Positions on bike lanes and transit in Toronto news almost always belong to sources, not to the outlets: 7 of 512 annotated sentences with a stated position give it as the outlet's own claim. Sources' positions on bike lanes are common, in 68% (61–76) of quoted sentences that name bike infrastructure and 36–45% of newsroom sentences, split about 3 to 2 between support and oppose. Transit positions are rarer and almost all support: 26% (17–35) of quoted transit sentences and 5–6% of newsroom sentences. Rates come from an annotated measurement sample of 1,613 sentences (D-85). Full details are in the addendum to `docs/writeup.md`.
 
 - Corpus: 1,167 Toronto articles (105 bike lane, 1,062 transit), 26,637 sentences.
+- Measurement sample: every body sentence naming bike infrastructure or cyclists (1,013) and 200 random transit sentences per outlet. Second-annotator kappa: infrastructure stance 0.94, transit stance 1.0, frame 0.76 (n = 100).
+- Outlets: CityNews bike-lane sentences carry a source's position more often than CTV's (quoted 80% vs 54%; newsroom 42% vs 27%). Transit intervals all overlap. No outlet differs in its own stated positions (0–1%).
+- Bill 212 periods: reported opposition to bike lanes was low while the plan was announced and the law took effect, and higher before and after. Suggestive only: many comparisons, small cells.
 - Topic precision on test: bike lane 0.97 (n = 29), transit 0.80 (n = 46). Source-role accuracy: 0.62 (n = 53).
-- Frames in 75 random annotated sentences: no policy content 49%, `other` 15%, quality of life 13%, economic 12%, safety, political and legality 3–5% each.
-- Models: the Snorkel label model is the best system on dev and test (frame accuracy 0.64; transit stance 0.88 on dev), but it overstates stance about 2× (transit 18% vs 9%). Its tables show where stance sits, not how much. SetFit failed validation for both frames and stance (D-80, D-84).
-- Not possible with these samples: outlet comparisons and Bill 212 period comparisons.
+- Models: no stance model passed validation. A SetFit transit model retrained on the real class mix (D-86) matched annotated rates overall and per outlet but halved the newsroom rate, failing a pass rule set before scoring (D-88). Snorkel overstates stance. Frame tables come from SetFit and are diagnosis only (D-80).

@@ -1,7 +1,7 @@
 """Merge v1.5 annotator JSONL into eval CSVs (annotator = claude-subagent).
 
-Usage: python -m eval.merge_v15 {test_v15,dev_v15,test_v15_topic,test_v15_source} labels.jsonl
-       [--second]   (second annotator on test_v15 rows -> test_v15_annotator2.csv)
+Usage: python -m eval.merge_v15 {test_v15,dev_v15,measure_v15,...} labels.jsonl
+       [--second]   (second annotator on <name> rows -> <name>_annotator2.csv)
 """
 
 import argparse
@@ -19,10 +19,12 @@ ALLOWED = {k: set(v) for k, v in V15_LABELS.items()} | {
     "bike_lane": {"true", "false"},
     "transit": {"true", "false"},
     "role": ROLES,
+    "stance_holder": {"source", "outlet", "none"},
 }
 FIELDS = {
     "test_v15": list(V15_LABELS),
     "dev_v15": list(V15_LABELS),
+    "measure_v15": [*V15_LABELS, "stance_holder"],  # stance_holder: D-87, merged by --fields
     "test_v15_topic": ["bike_lane", "transit"],
     "dev_v15_topic": ["bike_lane", "transit"],
     "test_v15_source": ["speaker", "role"],
@@ -73,18 +75,27 @@ def main() -> None:
         assert set(args.fields) <= set(fields), args.fields
         fields = args.fields
     if args.second:
-        path = EVAL / "test_v15_annotator2.csv"
-        if args.fields and path.exists():
-            rows = read_csv(path)
-        else:
-            src = {r["sentence_id"]: r for r in read_csv(EVAL / "test_v15.csv")}
-            rows = [{k: src[lab["sentence_id"]].get(k, "") for k in SENT_COLS} for lab in labels]
+        path = EVAL / f"{args.name}_annotator2.csv"
+        rows = read_csv(path) if args.fields and path.exists() else []
+        have = {r["sentence_id"] for r in rows}
+        src = {r["sentence_id"]: r for r in read_csv(EVAL / f"{args.name}.csv")}
+        rows += [
+            {k: src[lab["sentence_id"]].get(k, "") for k in SENT_COLS}
+            for lab in labels
+            if lab["sentence_id"] not in have
+        ]
+        for r in rows:
+            for f in fields:
+                r.setdefault(f, "")
         merge(rows, labels, fields, "claude-subagent-2")
         _write(path, rows)
         print(f"annotator 2: {len(rows)} rows")
         return
     path = EVAL / f"{args.name}.csv"
     rows = read_csv(path)
+    for r in rows:
+        for f in fields:
+            r.setdefault(f, "")
     n = merge(rows, labels, fields, "claude-subagent")
     _write(path, rows)
     print(f"merged {n} rows into {path}")

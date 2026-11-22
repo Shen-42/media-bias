@@ -47,6 +47,11 @@ LABELS = {
     "stance_cyclists_negative": "Negative about cyclists",
     "stance_transit_support": "Supports transit project",
     "stance_transit_oppose": "Opposes transit project",
+    "stance_infrastructure_any": "States a position on bike lanes",
+    "stance_cyclists_any": "States a position on cyclists",
+    "stance_transit_any": "States a position on transit",
+    "stance_infrastructure_outlet_held": "Outlet's own position on bike lanes",
+    "stance_transit_outlet_held": "Outlet's own position on transit",
     "loaded_language": "Loaded-language score (BABE model, mean)",
 }
 V15_FRAMES = [
@@ -236,53 +241,52 @@ with tab[5]:
 
 with tab[6]:
     st.warning(
-        "Exploratory. Stance shares come from the Snorkel label model on a random sample of "
-        "sentences that name a target (D-84). Its stance precision is about 0.4-0.6, so the "
-        "levels run about twice the annotated rates (transit: 18% vs 9%); compare text "
-        "sources, not levels. Frame shares come from SetFit, which failed validation (D-80), "
-        "and are for diagnosis only. Quoted, attributed and the outlet's own text are kept "
-        "apart: an attributed stance is the source's, not the outlet's. See the write-up."
+        "Stance shares come from LLM annotator labels on a measurement sample (D-85): every "
+        "body sentence naming bike lanes or cyclists, and 200 random transit sentences per "
+        "outlet. They are shares of sentences that name the target. No model stance passed "
+        "validation (D-88). Frame shares come from SetFit, which failed validation (D-80), "
+        "and are for diagnosis only. Quoted, attributed and unattributed text are kept "
+        "apart; 'newsroom' text is mostly reported positions the attribution detector "
+        "missed, so the outlet's own positions are shown separately. See the write-up."
     )
     topic = st.radio("Topic", ["bike_lane", "transit"], horizontal=True)
+    key = "infrastructure" if topic == "bike_lane" else "transit"
+    m = "infra" if topic == "bike_lane" else "transit"
+    stance = [f"stance_{key}_any", f"stance_{key}_support", f"stance_{key}_oppose"]
+    d = table(f"v15m_{m}_by_source")
+    if not d.empty:
+        st.subheader("Stance by text source (annotated)")
+        st.altair_chart(ci_chart(d, "text_source", stance))
+    d = table(f"v15m_{m}_by_outlet")
+    if not d.empty:
+        st.subheader("Stance by outlet (annotated)")
+        for ts in ("quoted", "attributed", "newsroom"):
+            st.caption(ts)
+            st.altair_chart(ci_chart(d[d["text_source"] == ts], "outlet", stance[:1]))
+    d = table("v15m_outlet_held")
+    if not d.empty:
+        st.subheader("Outlet's own stated position (annotated)")
+        st.altair_chart(ci_chart(d, "outlet", [f"stance_{key}_outlet_held"]))
     d = table("v15_frames_by_source")
     if not d.empty:
-        st.subheader("Policy frames by text source")
+        st.subheader("Policy frames by text source (SetFit, diagnosis only)")
         st.altair_chart(ci_chart(d[d["topic"] == topic], "text_source", V15_FRAMES))
-    d = table("v15_stance_by_source")
-    if not d.empty:
-        st.subheader("Stance by text source")
-        stance = [m for m in d["measure"].unique() if m in LABELS]
-        st.altair_chart(ci_chart(d[d["topic"] == topic], "text_source", stance))
     d = table("v15_frames_by_outlet")
     if not d.empty:
         st.subheader("Reporter text by outlet")
         d = d[(d["topic"] == topic) & (d["text_source"] == "newsroom")]
         st.altair_chart(ci_chart(d, "outlet", V15_FRAMES))
     if topic == "bike_lane":
-        d = table("v15_bike_lane_by_period")
+        d = table("v15m_infra_by_period")
         if not d.empty:
-            st.subheader("Bill 212 periods (reporter text)")
-            d = d[d["text_source"] == "newsroom"]
-            st.altair_chart(
-                ci_chart(
-                    d,
-                    "period",
-                    [
-                        "frame_legality",
-                        "frame_safety",
-                        "stance_infrastructure_support",
-                        "stance_infrastructure_oppose",
-                    ],
-                )
-            )
+            st.subheader("Bill 212 periods: stance on bike lanes (annotated)")
+            for ts in ("quoted", "attributed", "newsroom"):
+                st.caption(ts)
+                st.altair_chart(ci_chart(d[d["text_source"] == ts], "period", stance))
             st.dataframe(pd.read_csv(ROOT / "analysis" / "timeline_bill212.csv"), hide_index=True)
     st.subheader("Who is quoted")
     d = table("v15_source_roles")
     if not d.empty:
-        st.dataframe(d[d["topic"] == topic], use_container_width=True, hide_index=True)
-    d = table("v15_stance_by_role")
-    if not d.empty:
-        st.caption("Stance of quoted sentences by the speaker's role (the speaker's view).")
         st.dataframe(d[d["topic"] == topic], use_container_width=True, hide_index=True)
 
 if MODE == "local":

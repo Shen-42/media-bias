@@ -1,12 +1,11 @@
 """v1.5 aggregate tables (bike lanes and transit).
 
-Stance: Snorkel labels on the pool's target-mention stratum, a random sample of target-mention
-sentences (D-84); SetFit stance failed dev validation. Frames: SetFit, diagnosis only (D-80).
+Frames: SetFit, diagnosis only (D-80). Stance tables come from the annotated measurement
+sample instead (analysis/measure_v15.py, D-88); no model stance passed validation.
 
 Rates are sentence shares with article-cluster bootstrap 95% CIs (analysis.aggregate.rate_ci).
 Every table is split by text_source (quoted, attributed, newsroom); they are never pooled
 (CLAUDE.md, D-81).
-Stance shares use only sentences that mention the stance target.
 Bill 212 periods come from analysis/timeline_bill212.csv.
 """
 
@@ -66,10 +65,9 @@ def load(con) -> pd.DataFrame:
     lab = {}
     for r in con.execute(
         "SELECT sentence_id, label, value, score, source FROM labels"
-        " WHERE source IN ('setfit','babe','snorkel')"
+        " WHERE source IN ('setfit','babe')"
     ):
         lab[(r[0], r[1], r[4])] = r[3] if r[4] == "babe" else r[2]
-    pool = {r[0] for r in con.execute("SELECT sentence_id FROM pools WHERE pool='v15'")}
     role = {r[0]: r[1] for r in con.execute("SELECT sentence_id, role FROM v15_sources")}
     ps = periods()
     ts = {r[0]: r[1] for r in con.execute("SELECT id, text_source FROM sentences")}
@@ -91,32 +89,22 @@ def load(con) -> pd.DataFrame:
         frame = lab.get((s["id"], "policy_frame", "setfit"))
         for f in lfs_v15.FRAMES:
             r[f"frame_{f}"] = None if frame is None else float(frame == f)
-        for label, rx in v15.TARGETS.items():
-            v = lab.get((s["id"], label, "snorkel"))
-            has = bool(rx.search(s["text"])) and s["id"] in pool
-            pos, neg = lfs_v15.V15_LABELS[label][:2]
-            r[f"{label}_{pos}"] = float(v == pos) if has and v else None
-            r[f"{label}_{neg}"] = float(v == neg) if has and v else None
         rows.append(r)
     return pd.DataFrame(rows)
 
 
 def build(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
     frames = [f"frame_{f}" for f in lfs_v15.FRAMES]
-    stance = [f"{lab}_{v}" for lab in v15.TARGETS for v in lfs_v15.V15_LABELS[lab][:2]]
     body = df[df.part == "body"]
     out = {
         "v15_frames_by_source": rates(body, ["topic", "text_source"], frames),
         "v15_frames_by_outlet": rates(body, ["topic", "text_source", "outlet"], frames),
-        "v15_stance_by_source": rates(body, ["topic", "text_source"], stance),
-        "v15_stance_by_outlet": rates(body, ["topic", "text_source", "outlet"], stance),
         "v15_headline_frames": rates(df[df.part == "headline"], ["topic", "outlet"], frames),
         "v15_loaded_language": rates(body, ["topic", "text_source", "outlet"], ["loaded_language"]),
     }
     bl = body[body.topic == "bike_lane"]
-    out["v15_bike_lane_by_period"] = rates(bl, ["text_source", "period"], frames + stance)
+    out["v15_bike_lane_by_period"] = rates(bl, ["text_source", "period"], frames)
     quoted = body[body.source_role.notna()]
-    out["v15_stance_by_role"] = rates(quoted, ["topic", "source_role"], stance)
     out["v15_source_roles"] = (
         quoted.groupby(["topic", "outlet", "source_role"]).size().rename("quotes").reset_index()
     )

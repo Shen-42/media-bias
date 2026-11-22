@@ -39,3 +39,6 @@ Label every line. Output valid JSONL only.
   `article`): give `speaker` (the person or body quoted or paraphrased in `sentence`, as the
   article names them) and `role` under codebook §8.1. Use the whole article to find how the
   speaker is introduced. If the sentence quotes no one, set both to `none`.
+- **holder** packets (`packet_measure_holder_*.jsonl`, lines with `sentence_id`, `sentence`,
+  `headline`): label `stance_holder` (source | outlet | none) under codebook §9.2: who holds
+  the position the sentence states toward bike infrastructure, cyclists or transit.
