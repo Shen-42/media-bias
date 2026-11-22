@@ -75,7 +75,9 @@ ROLE_CUES = [
     (
         "resident",
         r"\bresidents?\b|\briders?\b|\bcommuters?\b|\bneighbou?rs?\b|\bparent\b"
-        r"|transit users?\b|\bpassengers?\b",
+        r"|transit users?\b|\bpassengers?\b|\blives? (?:in|near|on)\b|\bliving (?:in|near|on)\b"
+        r"|\bstudents?\b|\bmother\b"
+        r"|\bfather\b|\btakes the\b|\brides? the\b",  # quality check 2026-11-22
     ),
     (
         "other",
@@ -102,11 +104,36 @@ def role_of(speaker: str) -> str:
     return "unknown"
 
 
+TAIL_PRONOUN_RE = re.compile(
+    r"(?:^|[\s,])(he|she|they)(?:\s+(?:just|also|then|later|still))?$", re.I
+)
+TAIL_NAME_RE = re.compile(r"(?:^|\s)((?:[A-Z][\w.'’-]+\s+)?[A-Z][\w.'’-]+)$")
+
+
+def _trim(sp: str) -> str:
+    """Drop words before a trailing pronoun or name ("sometimes, he" -> "he";
+    "What 2 things Bauer" -> "Bauer"); quality check 2026-11-22."""
+    m = TAIL_PRONOUN_RE.search(sp)
+    if m and m.start(1) > 0:
+        return m.group(1).lower()
+    words = sp.split()
+    if (
+        len(words) > 1
+        and words[0][0].isupper()
+        and any(w[0].islower() or w[0].isdigit() for w in words)
+    ):
+        m = TAIL_NAME_RE.search(sp)
+        if m and words[0].lower() not in ("the", "a", "an", "one"):
+            return m.group(1)
+    return sp
+
+
 def speaker_of(sentence: str) -> str | None:
     for rx in SPEAKER_PATTERNS:
         m = rx.search(sentence)
         if m:
             sp = EDGE_RE.sub("", LEAD_RE.sub("", m.group("s").strip(" ,")))
+            sp = _trim(re.sub(r"^As\s+", "", sp))
             if sp and not CLAUSE_RE.search(sp) and len(sp.split()) <= 10:
                 return sp
     return None
@@ -146,9 +173,10 @@ def article_sources(sentences: list[str]) -> list[tuple[int, str, str]]:
         elif sp in titles:
             sp = titles[sp]
         role = role_of(sp)
-        doc = DOC_RE.search(sp)
+        doc = DOC_RE.search(sp) or re.search(r"\bspokes(?:person|man|woman)\b", sp, re.I)
         if role == "unknown" and doc:
-            role = _first_mention_role(doc.group(0).lower(), sentences)
+            # a document or spokesperson speaks for the body named with it (D-77)
+            role = _first_mention_role(doc.group(0).lower(), [x.lower() for x in sentences])
         elif role == "unknown" and re.fullmatch(_NAME, sp):
             role = _first_mention_role(sp.split()[-1], sentences)
         out.append((i, sp, role))

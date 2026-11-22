@@ -300,6 +300,52 @@ def measure(con, rng) -> None:
     print(f"measure rows: {len(rows)}", flush=True)
 
 
+def source_dev2(con, rng) -> None:
+    """Quality check (2026-11-22): 80 more dev quote units for source roles; the first 60 dev
+    rows were used up by D-77 tuning. Skips source eval rows and excluded ids."""
+    taken = excluded_ids() | {
+        r["sentence_id"]
+        for f in ("dev_v15_source.csv", "test_v15_source.csv")
+        for r in read_csv(EVAL / f)
+    }
+    units = [
+        dict(r)
+        for r in con.execute(
+            "SELECT q.sentence_id, s.article_id, s.text FROM v15_sources q"
+            " JOIN sentences s ON s.id = q.sentence_id"
+        )
+    ]
+    rng.shuffle(units)
+    units = [u for u in units if u["sentence_id"] not in taken][:80]
+    meta = _meta(con)
+    body = {a: t for a, t in con.execute("SELECT id, text FROM articles")}
+    _write(
+        EVAL / "dev_v15_source.csv",
+        SOURCE_COLS,
+        [
+            {
+                "sentence_id": u["sentence_id"],
+                "set": "source",
+                "sample": "random2",
+                **meta[u["article_id"]],
+            }
+            for u in units
+        ],
+    )
+    _packet(
+        "dev_v15_source2",
+        [
+            {
+                "sentence_id": u["sentence_id"],
+                "sentence": u["text"],
+                "article": body[u["article_id"]],
+            }
+            for u in units
+        ],
+    )
+    print(f"source dev2: {len(units)} units", flush=True)
+
+
 def topic_dev2(con, rng) -> None:
     """Quality check (2026-11-22): 80 more transit-tagged articles for dev topic precision;
     dev had 1 false positive in 24, too few to find error patterns. Skips topic eval articles."""
@@ -380,7 +426,15 @@ def attribution(con, rng) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument(
-        "stage", choices=["sentences", "disagreement", "measure", "attribution", "topic_dev2"]
+        "stage",
+        choices=[
+            "sentences",
+            "disagreement",
+            "measure",
+            "attribution",
+            "topic_dev2",
+            "source_dev2",
+        ],
     )
     ap.add_argument("--db", default=None)
     args = ap.parse_args()
@@ -392,6 +446,7 @@ def main() -> None:
         "measure": measure,
         "attribution": attribution,
         "topic_dev2": topic_dev2,
+        "source_dev2": source_dev2,
     }[args.stage](con, rng)
 
 

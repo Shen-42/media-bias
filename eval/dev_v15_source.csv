@@ -59,3 +59,83 @@ fd4cb1235cd17e9d:b:23,source,random,citynews,2023,David Soberman,expert,claude-s
 34d3759435021729:b:5,source,random,global,2024,TTC report,agency_staff,claude-subagent
 7eb4c5d5dfa64a68:b:12,source,random,citynews,2025,Ausma Malik,politician_city,claude-subagent
 0fb5ec82d5eee42b:b:2,source,random,citynews,2024,Phil Verster,agency_staff,claude-subagent
+c0064a583397776b:b:51,source,random2,ctv,2026,Ausma Malik,politician_city,claude-subagent
+fc7749c4e9dd406a:b:19,source,random2,citynews,2023,Dariusz Nowotny,other,claude-subagent
+23b31a8f76c78a55:b:9,source,random2,citynews,2024,Mayor Olivia Chow,politician_city,claude-subagent
+661e28fae712aa50:b:19,source,random2,citynews,2026,the chair of the Little Jamaica BIA,business,claude-subagent
+aea7c4bc3aeb53ae:b:39,source,random2,citynews,2024,Stuart Green,agency_staff,claude-subagent
+08bf34a9377b7947:b:11,source,random2,ctv,2026,MLSE,business,claude-subagent
+a7bea8afb5610a11:b:37,source,random2,ctv,2025,Peter Mahase,resident,claude-subagent
+67b9b5c57967f6df:b:3,source,random2,ctv,2026,Rockwell Cui and Elliott Stone,resident,claude-subagent
+c9b6a5d6e31af333:b:29,source,random2,citynews,2023,Shelagh Pizey-Allen,other,claude-subagent
+48846df0bfdf4913:b:25,source,random2,citynews,2023,Rogers,business,claude-subagent
+fd4cb1235cd17e9d:b:22,source,random2,citynews,2023,David Soberman,expert,claude-subagent
+497bd1ae53593a89:b:14,source,random2,citynews,2023,Metrolinx,agency_staff,claude-subagent
+c018ccfdff1c25d4:b:15,source,random2,ctv,2025,Officials,agency_staff,claude-subagent
+8f96dac87c28afe8:b:4,source,random2,citynews,2025,the documents,agency_staff,claude-subagent
+fb7ea8183bde835c:b:3,source,random2,ctv,2026,Metrolinx,agency_staff,claude-subagent
+f5e296c533014078:b:3,source,random2,citynews,2023,Premier Doug Ford,politician_province,claude-subagent
+871a8748b7b0d75b:b:11,source,random2,citynews,2026,Metrolinx officials,agency_staff,claude-subagent
+5616eaa6b18782bf:b:1,source,random2,ctv,2025,TTC,agency_staff,claude-subagent
+21e2d561ea5417c2:b:3,source,random2,ctv,2025,the TTC,agency_staff,claude-subagent
+97be15162b8d5b31:b:4,source,random2,citynews,2025,Jennifer Keesmaat,expert,claude-subagent
+8da3c12bab427e6a:b:19,source,random2,global,2026,A spokesperson for TTC,agency_staff,claude-subagent
+0dcae5385bf765ee:b:19,source,random2,global,2026,Michael Lindsay,agency_staff,claude-subagent
+4b1e456fa0451d0c:b:18,source,random2,citynews,2024,Verster,agency_staff,claude-subagent
+e9a7ac058e36132d:b:5,source,random2,ctv,2026,Minjae Cho,resident,claude-subagent
+aad425b384ee981a:b:5,source,random2,global,2025,Sources,unknown,claude-subagent
+89dcace7240fd6b4:b:0,source,random2,citynews,2023,The TTC,agency_staff,claude-subagent
+59518df08958368e:b:23,source,random2,global,2025,Ford,politician_province,claude-subagent
+60cd50a6f7701a4d:b:29,source,random2,ctv,2025,Mac Bauer,resident,claude-subagent
+f5e296c533014078:b:26,source,random2,citynews,2023,Verster,agency_staff,claude-subagent
+581b0043378d0f4c:b:2,source,random2,citynews,2023,Staff with Metrolinx,agency_staff,claude-subagent
+c1d7a7e2e78b7b37:b:7,source,random2,citynews,2023,Chris Zafirati,resident,claude-subagent
+357f71aca112762d:b:18,source,random2,citynews,2023,Shelagh Pizey-Allen,other,claude-subagent
+263906dffd33368c:b:10,source,random2,citynews,2023,MPP Sara Jama,politician_province,claude-subagent
+b7fc430d947739d1:b:17,source,random2,citynews,2025,Live Nation,business,claude-subagent
+aaa4d77e728af3a2:b:4,source,random2,ctv,2025,GO Transit,agency_staff,claude-subagent
+6dab03a0175e8bb9:b:3,source,random2,global,2025,the city,agency_staff,claude-subagent
+64a0b39831377ef7:b:5,source,random2,ctv,2025,The city,agency_staff,claude-subagent
+7f852c9401d9e8d2:b:17,source,random2,citynews,2023,Leslie Bruce,business,claude-subagent
+32b32e384d277074:b:1,source,random2,ctv,2025,Metrolinx,agency_staff,claude-subagent
+89dcace7240fd6b4:b:16,source,random2,citynews,2023,The TTC,agency_staff,claude-subagent
+0ceb8d41cd66dfca:b:2,source,random2,ctv,2025,Fernanda Pisani,resident,claude-subagent
+6287d11e6251228c:b:48,source,random2,citynews,2024,Coun. Mike Colle,politician_city,claude-subagent
+9ac05ee025772a19:b:22,source,random2,citynews,2026,Brad Bradford,politician_city,claude-subagent
+5a20cf0636c86d07:b:27,source,random2,global,2023,Marvin Alfred,other,claude-subagent
+a53d76b8e4d7a25b:b:14,source,random2,citynews,2026,Kareem Rahma,other,claude-subagent
+90ba2b92b99406c2:b:0,source,random2,citynews,2026,Ontario minister,politician_province,claude-subagent
+0a9db1d35903dba2:b:17,source,random2,ctv,2025,the provincial transportation agency,agency_staff,claude-subagent
+d87466cc5e54510e:b:41,source,random2,citynews,2024,Greg Percy,agency_staff,claude-subagent
+aad425b384ee981a:b:15,source,random2,global,2025,Prabmeet Sarkaria,politician_province,claude-subagent
+e168fc21726fd097:b:3,source,random2,ctv,2025,Metrolinx,agency_staff,claude-subagent
+ea3fe6283d67571e:b:5,source,random2,ctv,2026,Susan Nguyen,agency_staff,claude-subagent
+9b10bd14a2688b1e:b:10,source,random2,citynews,2026,Metrolinx CEO Michael Lindsay,agency_staff,claude-subagent
+3b3c5b8fde350b27:b:16,source,random2,citynews,2026,Brad Bradford,politician_city,claude-subagent
+1b82349c62a7601e:b:6,source,random2,ctv,2025,Oksana Cherchik,resident,claude-subagent
+7ef6b5c8cf314a7a:b:5,source,random2,global,2025,Andrea Hazel,politician_province,claude-subagent
+9b96a15017827faa:b:2,source,random2,global,2025,The decision,other,claude-subagent
+fff19cb196464e6f:b:29,source,random2,citynews,2026,Marit Stiles,politician_province,claude-subagent
+1290b5d6ec50f37c:b:9,source,random2,ctv,2025,Cycle Toronto,vru_advocate,claude-subagent
+e93eaf33a8ab8ab5:b:18,source,random2,citynews,2026,Ashley Curtis,agency_staff,claude-subagent
+bf9205358779a13e:b:2,source,random2,global,2023,Police,police,claude-subagent
+f91fd1fd4a62951a:b:2,source,random2,citynews,2024,Susan Nguyen,agency_staff,claude-subagent
+0136c2f749e92a94:b:35,source,random2,citynews,2023,Sandra Farina,business,claude-subagent
+e269cb070373c0d4:b:10,source,random2,citynews,2024,Karen Chapple,expert,claude-subagent
+6dab03a0175e8bb9:b:9,source,random2,global,2025,Mandeep Lali,agency_staff,claude-subagent
+be34ddb895e415b0:b:1,source,random2,ctv,2025,Stuart Green,agency_staff,claude-subagent
+51079b6409b5f2d3:b:11,source,random2,ctv,2025,One commuter,resident,claude-subagent
+298f9e5677c761bc:b:18,source,random2,citynews,2023,Rogers,business,claude-subagent
+8237a7416b3aa678:b:4,source,random2,ctv,2025,a spokesperson for Ontario's transportation minister,politician_province,claude-subagent
+55d420affccba415:b:10,source,random2,citynews,2025,TTC CEO Greg Percy,agency_staff,claude-subagent
+68c937c24629cb6b:b:2,source,random2,ctv,2026,a spokesperson,agency_staff,claude-subagent
+fab8710e43386549:b:27,source,random2,global,2023,the company,business,claude-subagent
+d2f0beb94e94afb6:b:26,source,random2,ctv,2026,Susan Nguyen,agency_staff,claude-subagent
+63f6d7f08a952d0c:b:3,source,random2,citynews,2026,Josh Colle,agency_staff,claude-subagent
+f88f7bd3f936cde1:b:15,source,random2,ctv,2025,the TTC,agency_staff,claude-subagent
+6441183c7474568c:b:3,source,random2,citynews,2024,The TTC,agency_staff,claude-subagent
+1a4e75ec573df7bb:b:37,source,random2,global,2024,Mosaic,business,claude-subagent
+0a5d5f18dc120366:b:3,source,random2,citynews,2023,The LSO,other,claude-subagent
+06facde56d36e605:b:3,source,random2,global,2025,a spokesperson,agency_staff,claude-subagent
+701a9dd184cb22e8:b:13,source,random2,citynews,2023,Matti Siemiatycki,expert,claude-subagent
+d87466cc5e54510e:b:24,source,random2,citynews,2024,the Hatch report,expert,claude-subagent

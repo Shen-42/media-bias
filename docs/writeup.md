@@ -129,7 +129,7 @@ Fevyer & Aldred (2022) studied fatal-crash reporting in the London *Evening Stan
 
 ## Addendum: bike lane and transit coverage (v1.5)
 
-Positions on bike lanes and transit in Toronto news almost always belong to sources, not to the outlets. Of 512 annotated sentences that state a position, 7 state it as the outlet's own claim (1.4%). Among all 955 body sentences that name bike infrastructure, 0.5% carry the outlet's own position (CityNews 5 of 450, CTV 0 of 212, Global 0 of 293). Positions from sources are common: 68% (61–76) of quoted sentences that name bike infrastructure take one, 45% (38–51) of attributed sentences and 36% (31–41) of other newsroom sentences, split between support and oppose about 3 to 2. Transit positions are rarer and almost all support: 26% (17–35) of quoted transit sentences, 6% (3–9) of attributed and 5% (2–8) of other newsroom sentences. All of these rates come from annotated sentences (D-85), not from a model. No model stance passed validation (D-88).
+Positions on bike lanes and transit in Toronto news almost always belong to sources, not to the outlets. Of 511 annotated sentences that state a position, 7 state it as the outlet's own claim (1.4%). Among all 955 body sentences that name bike infrastructure, 0.5% carry the outlet's own position (CityNews 5 of 450, CTV 0 of 212, Global 0 of 293). Positions from sources are common: 68% (61–76) of quoted sentences that name bike infrastructure take one, 52% (46–58) of attributed sentences and 28% (23–33) of other newsroom sentences, split between support and oppose about 3 to 2. Transit positions are rarer and almost all support: 26% (17–35) of quoted transit sentences, 6% (3–10) of attributed and 4% (2–7) of other newsroom sentences. All of these rates come from annotated sentences (D-85), not from a model. No model stance passed validation (D-88).
 
 ### Stance definition
 
@@ -137,57 +137,58 @@ Codebook 9.2 was revised at the author's request (D-81): a position attributed t
 
 ### Corpus
 
-1,167 Toronto articles are tagged bike lane (105) or transit (1,062), with 26,637 sentences, from the same three outlets and window as v1. Topic tags come from keyword rules on the headline and first two paragraphs (D-65). A headline about a crash, crime or police incident keeps an article out (D-76).
+1,149 Toronto articles are tagged bike lane or transit, with 26,208 sentences, from the same three outlets and window as v1. Topic tags come from keyword rules on the headline and first two paragraphs (D-65). A headline about a crash, crime or police incident keeps an article out (D-76, D-92).
 
 ### Annotated rates
 
-The measurement sample (D-85) holds every body sentence that names bike infrastructure or cyclists (1,013 sentences) and 200 random transit-mention body sentences per outlet (600). An annotator subagent labeled all of them blind to every model. A second run on 100 rows agreed with kappa 0.94 for infrastructure stance, 1.0 for transit stance and 0.76 for policy frame. A second pass labeled who holds each stated position (`stance_holder`, D-87): a second run agreed on 60 of 60.
+The measurement sample (D-85) holds every body sentence that names bike infrastructure or cyclists (1,014 sentences in scope) and about 200 random transit-mention body sentences per outlet (588 in scope). An annotator subagent labeled all of them blind to every model. A second run on 100 rows agreed with kappa 0.94 for infrastructure stance, 1.0 for transit stance and 0.76 for policy frame. A second pass labeled who holds each stated position (`stance_holder`, D-87): a second run agreed on 60 of 60.
 
-The `stance_holder` label was added because the attributed-sentence detector misses many reported positions. Most "newsroom" sentences with a stance report what a named group or person did or said ("Cycling advocates rally at High Park in opposition to…", "The premier complained that some of these bike lanes create gridlock"). Newsroom text with a stance is therefore not the outlet's voice. Only `stance_holder` = `outlet` is.
+The `stance_holder` label was added because the attributed-sentence detector misses reported positions. A quality check (D-91) extended the detector to verbs of position (argue, warn, urge, vow, call for, criticize and others): test recall rose from 0.66 to 0.73 at precision 0.93. The remaining "newsroom" sentences with a stance still mostly report what a named group or person did or said ("Cycling advocates rally at High Park in opposition to…"). Newsroom text with a stance is therefore not the outlet's voice. Only `stance_holder` = `outlet` is.
 
 Shares of body sentences that name the target, with article-cluster bootstrap 95% CIs. Transit rates weight each outlet by its share of transit sentences.
 
 | Target | Text source | n | Any position | Support | Oppose |
 |---|---|---|---|---|---|
 | Bike infrastructure | quoted | 221 | 68% (61–76) | 41% | 27% |
-| Bike infrastructure | attributed | 244 | 45% (38–51) | 26% | 18% |
-| Bike infrastructure | other newsroom | 490 | 36% (31–41) | 22% | 14% |
-| Transit | quoted | 115 | 26% (17–35) | 26% | 0% |
-| Transit | attributed | 208 | 6% (3–9) | 5% | 1% |
-| Transit | other newsroom | 277 | 5% (2–8) | 5% | 0% |
+| Bike infrastructure | attributed | 326 | 52% (46–58) | 29% | 23% |
+| Bike infrastructure | other newsroom | 408 | 28% (23–33) | 19% | 9% |
+| Transit | quoted | 114 | 26% (17–35) | 26% | 0% |
+| Transit | attributed | 238 | 6% (3–10) | 5% | 1% |
+| Transit | other newsroom | 236 | 4% (2–7) | 4% | 0% |
 | Cyclists | all three | 127 | 5 sentences | 4 | 1 |
 
-Outlet's own position (`stance_holder` = `outlet`): bike infrastructure CityNews 1.1% (0.2–2.2, n = 450), CTV 0 of 212, Global 0 of 293; transit CityNews 1 of 200, Global 1 of 200, CTV 0 of 200. With counts this small, no outlet differs from another.
+Outlet's own position (`stance_holder` = `outlet`): bike infrastructure CityNews 1.1% (0.2–2.2, n = 450), CTV 0 of 212, Global 0 of 293; transit CityNews 1 of 199, Global 1 of 189, CTV 0 of 200. With counts this small, no outlet differs from another.
 
-**Outlets.** Outlets differ in how often their bike-lane sentences carry a source's position. CityNews quoted sentences take one 80% (71–88) of the time against 54% (38–68) at CTV, and its newsroom sentences 42% (34–51) against 27% (20–34). Global sits between them, overlapping both. For transit, every outlet interval overlaps (quoted: CityNews 33%, CTV 19%, Global 15%). These are differences in which positions get reported, not in the outlets' own views.
+**Outlets.** CityNews bike-lane sentences carry a source's position more often than at least one other outlet in every text type: quoted 80% (71–88) against 54% (38–68) at CTV; attributed 64% (55–74) against 39% (33–47) at Global; other newsroom 34% (26–42) against 18% (10–25) at CTV. Four of 27 outlet comparisons have non-overlapping intervals, all in this direction. For transit, every outlet interval overlaps. These are differences in which positions get reported, not in the outlets' own views.
 
-**Bill 212 periods.** Bike-lane opposition in attributed and newsroom sentences was low while the plan was announced and the law came into force (attributed oppose 3% and 4%, newsroom 5% and 15%). It was higher before the plan (22% and 24%) and after the injunction (attributed 22–27%). This pattern is suggestive only. The period tables hold about 160 pairwise comparisons, so some non-overlapping intervals are expected by chance, and several periods have under 30 sentences per text source.
+**Bill 212 periods.** Reported opposition to bike lanes in attributed and newsroom sentences was lowest when the plan was announced (attributed 7%, newsroom 3%) and higher before the plan (28% and 19%). Only 10 of 135 period comparisons have non-overlapping intervals, close to chance, so this is not a finding.
 
 **Policy frames.** Frames come from the same annotated sample (D-90), so they describe sentences that name the target. Annotator agreement on frames is kappa 0.83 (n = 184); the models are the weak point, so no model frame rate is reported.
 
 | Frame | Bike lanes: quoted | attributed | newsroom | Transit: quoted | attributed | newsroom |
 |---|---|---|---|---|---|---|
-| Legality | 7% | 25% | 36% (30–42) | 1% | 2% | 4% |
-| Political | 18% | 24% | 25% | 6% | 4% | 1% |
-| Quality of life | 21% | 16% | 6% | 17% | 10% | 12% |
-| Safety | 20% (15–26) | 7% | 6% | 14% | 12% | 11% |
-| Economic | 4% | 8% | 5% | 16% | 12% | 16% |
-| Other | 24% | 12% | 8% | 21% | 19% | 14% |
-| No policy content | 6% | 7% | 15% | 26% | 42% | 42% |
+| Legality | 7% | 24% | 39% (33–45) | 1% | 1% | 4% |
+| Political | 18% | 24% | 26% | 6% | 4% | 1% |
+| Quality of life | 21% | 16% | 4% | 17% | 10% | 12% |
+| Safety | 20% (15–26) | 9% | 4% | 13% | 14% | 9% |
+| Economic | 4% | 8% | 4% | 16% | 12% | 16% |
+| Other | 24% | 12% | 7% | 21% | 18% | 14% |
+| No policy content | 6% | 6% | 17% | 26% | 41% | 43% |
 
-Bike-lane sentences in the outlets' own text are framed mostly as law and politics. Quoted sources frame them by safety and daily life. Transit sentences are more often plain service news. Legal framing in bike-lane newsroom text moved with Bill 212: 18% (10–27) before the plan and 27% at its announcement, 49% (37–62) while the law was in force, 64% (44–83) under the injunction and 46% after it was struck down, then 26% after the appeal was allowed. Economic framing peaked at the announcement (22%, against 0–3% in other periods). Of 315 period comparisons, 52 have non-overlapping intervals, far more than chance. Outlet comparisons are at chance level (7 of 126), so no outlet differs in framing. A rate of zero gets a 0–0 bootstrap interval, which understates uncertainty in small cells.
+Bike-lane sentences in the outlets' own text are framed mostly as law and politics. Quoted sources frame them by safety and daily life. Transit sentences are more often plain service news. Legal framing in bike-lane newsroom text moved with Bill 212: 19% (10–28) before the plan and 33% at its announcement, 55% (43–67) while the law was in force, 64% (42–85) under the injunction and 47% after it was struck down, then 31% after the appeal was allowed. Economic framing peaked at the announcement (17%, against 0–3% in other periods). Of 315 period comparisons, 44 have non-overlapping intervals, well above chance. Outlet frame comparisons are near chance (9 of 126), so no outlet differs in framing. A rate of zero gets a 0–0 bootstrap interval, which understates uncertainty in small cells.
 
 Across all v1.5 sentences, policy frames in 75 random annotated test sentences: no policy content 49% (38–60), `other` 15% (8–24), quality of life 13% (7–23), economic 12% (6–21), safety 5% (2–13), political 3% (1–9), legality 3% (1–9). `other` here is mostly transit service reliability, maintenance and project delivery, which the codebook places under capacity and policy evaluation.
 
 ### Components
 
-| Measure | Result (test) | Before dev tuning |
+| Measure | Result (test) | Before the 2026-11-22 quality checks |
 |---|---|---|
-| Topic precision, bike lane | 0.97 (n = 29) | 0.94 (n = 32) |
-| Topic precision, transit | 0.80 (n = 46) | 0.64 (n = 58) |
-| Source-role accuracy | 0.62 (n = 53) | 0.57 (n = 60) |
+| Topic precision, bike lane | 0.97 (n = 29) | 0.97 (n = 29) |
+| Topic precision, transit | 0.82 (n = 45) | 0.80 (n = 46) |
+| Attribution (`attributed`), precision / recall | 0.93 / 0.73 (n = 150) | 0.92 / 0.66 |
+| Source-role accuracy | 0.60 (n = 53) | 0.62 (n = 53) |
 
-Topic and role rules were tuned on separate dev samples (D-75 to D-77). Test errors were not used. The "after" column has smaller n because test rows from articles that left scope are dropped (D-79). Topic recall was not measured. The role extractor labels 32% of quote units `unknown`; the annotator, who read the full article, never did.
+Each check used a new dev sample, because the earlier dev rows had been used up by tuning (D-75 to D-77): 80 transit-tagged articles (D-92), 150 sentences for attribution (D-91) and 80 quote units for roles (D-93). Test errors were not used. On the new dev sample the role extractor scored 0.66, against 0.81 on the old dev rows, so the old figure was overfit. The role fixes gained one dev row and lost one test row. The extractor labels 30% of test quote units `unknown`; the annotator, who read the full article, never did. Most remaining errors need the whole article to identify the speaker. Topic recall was not measured.
 
 ### Model results
 
@@ -210,7 +211,7 @@ Two labeling-function problems surfaced on dev and were fixed (D-83). The suppor
 ### Limitations specific to v1.5
 
 - Transit rates rest on 600 annotated sentences (200 per outlet) out of 9,210. Period comparisons for transit were not attempted.
-- The attributed-sentence detector misses many reported positions, so `attributed` and `newsroom` text both mostly carry sources' views (D-87).
+- The attributed-sentence detector still misses about a quarter of reported positions (test recall 0.73, D-91), so `newsroom` text with a stance mostly carries sources' views (D-87).
 - Every gold label came from LLM annotators reading the codebook, with two runs of the same model as the agreement check.
 - The incident-headline rule removed one true bike lane article in the dev sample ("arrested as … bike lane removal protests continue").
 - Bike lane coverage is small (105 articles, 955 sentences that name bike infrastructure), so some Bill 212 periods have under 30 sentences per text source.

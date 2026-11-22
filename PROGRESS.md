@@ -64,7 +64,9 @@ Done:
 
 - Step 4 done: frames reported from the measurement sample; SetFit frame tables dropped (D-90).
 
-Next (author's order, 2026-11-22): then quality checks (source roles, transit topic precision, attribution detector recall, human-labeled sample).
+- Quality checks done (D-91 attribution, D-92 transit topic, D-93 source roles); public-data research in `docs/public-data.md`.
+
+Next (author's order, 2026-11-22): human-labeled check using public data (`docs/public-data.md`: Media Frames Corpus, PolNeAR, TPS KSI); old list: then quality checks (source roles, transit topic precision, attribution detector recall, human-labeled sample).
 
 ## Blockers
 - None.

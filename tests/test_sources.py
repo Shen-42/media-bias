@@ -120,3 +120,18 @@ def test_document_speaker_takes_issuer_role():
         "The report said the project is two years behind schedule.",
     ]
     assert article_sources(sents)[0][2] == "agency_staff"
+
+
+def test_speaker_trims_words_before_a_trailing_pronoun_or_name():
+    # quality check 2026-11-22
+    assert speaker_of("And sometimes, he just says three simple words.") == "he"
+    assert speaker_of("What 2 things Bauer says the TTC could do better.") == "Bauer"
+    assert speaker_of("He said the ruling was wrong.") == "He"
+
+
+def test_spokesperson_takes_role_of_the_body_named_with_it():
+    sents = [
+        "A spokesperson for the TTC confirmed the closure.",
+        "“The work will take a month,” a spokesperson said.",
+    ]
+    assert article_sources(sents)[-1][2] == "agency_staff"
