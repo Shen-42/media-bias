@@ -65,10 +65,10 @@ def parse_sitemap(xml: str) -> list[tuple[str, str | None]]:
     return [(m.group(1).replace("&amp;", "&"), m.group(2)) for m in LOC_RE.finditer(xml)]
 
 
-def _store(con, outlet: str, entries, source: str, start: str, end: str) -> int:
+def _store(con, outlet: str, entries, source: str, start: str, end: str, default_hint=None) -> int:
     n = 0
     for url, lastmod in entries:
-        hint = topic_hint(url)
+        hint = topic_hint(url) or default_hint
         if not hint:
             continue
         ud = url_date(url)
@@ -94,7 +94,16 @@ def _sitemaps_done(con) -> set[str]:
 RESCAN = False  # set by --rescan: re-read finished sitemaps, add only new URLs (D-61)
 
 
-def _walk(f: Fetcher, con, outlet: str, maps: list[str], start: str, end: str, keep=None) -> None:
+def _walk(
+    f: Fetcher,
+    con,
+    outlet: str,
+    maps: list[str],
+    start: str,
+    end: str,
+    keep=None,
+    default_hint=None,
+) -> None:
     """Fetch each sitemap once. Finished ones are recorded so a rerun resumes; a failed one is
     logged and left for the rerun instead of aborting the outlet."""
     done = set() if RESCAN else _sitemaps_done(con)
@@ -115,20 +124,34 @@ def _walk(f: Fetcher, con, outlet: str, maps: list[str], start: str, end: str, k
             continue
         if keep:
             entries = keep(sm, entries)
-        n = _store(con, outlet, entries, sm, start, end)
+        n = _store(con, outlet, entries, sm, start, end, default_hint)
         con.execute("INSERT OR IGNORE INTO sitemaps_done VALUES (?,?)", (sm, outlet))
         con.commit()
         print(f"{outlet} {sm.rsplit('/', 1)[-1][:60]}: {len(entries)} urls, {n} kept", flush=True)
     print(f"{outlet}: {failed} sitemaps failed (rerun to retry)", flush=True)
 
 
-def citynews(f: Fetcher, con, start: str, end: str) -> None:
-    index = f.get("https://toronto.citynews.ca/sitemap.xml").text
+def _citynews(f: Fetcher, con, start: str, end: str, host: str, outlet: str) -> None:
+    index = f.get(f"https://{host}/sitemap.xml").text
     maps = [u for u, _ in parse_sitemap(index) if "sitemap-pt-post-p" in u]
-    _walk(f, con, "citynews", maps, start, end)
+    _walk(f, con, outlet, maps, start, end)
 
 
-def ctv(f: Fetcher, con, start: str, end: str) -> None:
+def citynews(f: Fetcher, con, start: str, end: str) -> None:
+    _citynews(f, con, start, end, "toronto.citynews.ca", "citynews")
+
+
+def citynews_van(f: Fetcher, con, start: str, end: str) -> None:
+    _citynews(f, con, start, end, "vancouver.citynews.ca", "citynews_van")
+
+
+def citynews_mtl(f: Fetcher, con, start: str, end: str) -> None:
+    _citynews(f, con, start, end, "montreal.citynews.ca", "citynews_mtl")
+
+
+def ctv(
+    f: Fetcher, con, start: str, end: str, section: str = "toronto", outlet: str = "ctv"
+) -> None:
     d, last = date.fromisoformat(start), date.fromisoformat(end)
     maps = []
     while d <= last:
@@ -139,9 +162,21 @@ def ctv(f: Fetcher, con, start: str, end: str) -> None:
 
     def keep(sm, entries):
         day = re.search(r"/sitemap/(\d{4}-\d{2}-\d{2})/", sm).group(1)
-        return [(x, day) for x, _ in entries if "/toronto/" in x]
+        return [(x, day) for x, _ in entries if re.search(f"/{section}/", x)]
 
-    _walk(f, con, "ctv", maps, start, end, keep)
+    _walk(f, con, outlet, maps, start, end, keep)
+
+
+def ctv_cities(f: Fetcher, con, start: str, end: str) -> None:
+    """One walk of the shared daily sitemaps for both comparison cities (D-100): URLs are
+    stored under ctv_cities, then split by section."""
+    ctv(f, con, start, end, section="(?:vancouver|montreal)", outlet="ctv_cities")
+    for city, outlet in (("vancouver", "ctv_van"), ("montreal", "ctv_mtl")):
+        con.execute(
+            "UPDATE discovered_urls SET outlet=? WHERE outlet='ctv_cities' AND url LIKE ?",
+            (outlet, f"%/{city}/%"),
+        )
+    con.commit()
 
 
 def global_news(f: Fetcher, con, start: str, end: str) -> None:
@@ -157,7 +192,40 @@ def cbc(f: Fetcher, con, start: str, end: str) -> None:
     print("cbc index:", parse_sitemap(index)[:5], flush=True)
 
 
-OUTLETS = {"citynews": citynews, "ctv": ctv, "global": global_news, "cbc": cbc}
+def _wp_posts(f: Fetcher, index_url: str) -> list[str]:
+    return [u for u, _ in parse_sitemap(f.get(index_url).text) if "post-sitemap" in u]
+
+
+# Urbanist outlets (D-99) use plain slugs, so every in-window post is kept ("other" when the
+# slug names no topic) and topics come from the text. Cycling Magazine is mostly racing, so
+# only slug-matched posts are kept there.
+def spacing(f: Fetcher, con, start: str, end: str) -> None:
+    maps = _wp_posts(f, "https://spacing.ca/toronto/sitemap_index.xml")
+    _walk(f, con, "spacing", maps, start, end, default_hint="other")
+
+
+def thelocal(f: Fetcher, con, start: str, end: str) -> None:
+    maps = _wp_posts(f, "https://thelocal.to/sitemap_index.xml")
+    _walk(f, con, "thelocal", maps, start, end, default_hint="other")
+
+
+def cyclingmag(f: Fetcher, con, start: str, end: str) -> None:
+    maps = _wp_posts(f, "https://cyclingmagazine.ca/sitemap_index.xml")
+    _walk(f, con, "cyclingmag", maps, start, end)
+
+
+OUTLETS = {
+    "citynews": citynews,
+    "ctv": ctv,
+    "global": global_news,
+    "cbc": cbc,
+    "citynews_van": citynews_van,
+    "citynews_mtl": citynews_mtl,
+    "ctv_cities": ctv_cities,
+    "spacing": spacing,
+    "thelocal": thelocal,
+    "cyclingmag": cyclingmag,
+}
 
 
 def main() -> None:
@@ -169,7 +237,7 @@ def main() -> None:
     global RESCAN
     RESCAN = args.rescan
     cfg = config.load()
-    o = cfg["outlets"][args.outlet]
+    o = cfg["outlets"].get(args.outlet) or cfg["outlets"]["ctv"]  # ctv_cities shares CTV
     f = Fetcher(delays={o["domain"]: o["crawl_delay_s"]})
     con = db.connect(args.db)
     try:

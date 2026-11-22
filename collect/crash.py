@@ -8,7 +8,7 @@ import json
 import re
 from datetime import date
 
-from common import db
+from common import config, db
 from nlp import lexicons as lx
 
 OTHER_POLICE_RE = re.compile(
@@ -236,11 +236,60 @@ def assign_crash_ids(arts: list[dict]) -> None:
         seen.add(key)
 
 
+# Comparison cities (D-100). Same logic as is_toronto: the city's own police or emergency
+# service wins; another force, or another municipality in the lead, rules an article out.
+CITIES = {
+    "vancouver": {
+        "own": re.compile(r"vancouver police|\bVPD\b|vancouver fire", re.I),
+        "other": re.compile(
+            r"\bRCMP\b|surrey police|delta police|abbotsford police|new westminster police"
+            r"|port moody police|west vancouver police|victoria police|saanich police",
+            re.I,
+        ),
+        "elsewhere": re.compile(
+            r"\b(?:Surrey|Burnaby|Richmond|Coquitlam|North Vancouver|West Vancouver|Delta"
+            r"|Langley|Abbotsford|Chilliwack|Maple Ridge|New Westminster|Port Coquitlam"
+            r"|Port Moody|Victoria|Kelowna|Kamloops|Nanaimo|Squamish|Whistler|Prince George"
+            r"|Saanich|Seattle|Washington state)\b"
+        ),
+        "name": re.compile(r"(?<!North )(?<!West )\bVancouver\b"),
+    },
+    "montreal": {
+        "own": re.compile(r"montreal police|\bSPVM\b|urgences-sant", re.I),
+        "other": re.compile(
+            r"s[uû]ret[eé] du qu[eé]bec|\bSQ\b|laval police|longueuil police"
+            r"|quebec city police|gatineau police|ottawa police|toronto police",
+            re.I,
+        ),
+        "elsewhere": re.compile(
+            r"\b(?:Laval|Longueuil|Quebec City|Gatineau|Sherbrooke|Trois-Rivi\w+|Brossard"
+            r"|Terrebonne|Repentigny|Saint-J\w+|Blainville|Mirabel|Boucherville|Vaudreuil"
+            r"|Ch[aâ]teauguay|Ottawa|Toronto)\b"
+        ),
+        "name": re.compile(r"\bMontr[eé]al\b"),
+    },
+}
+CITY_LOCAL = {"citynews", "ctv", "citynews_van", "citynews_mtl", "ctv_van", "ctv_mtl"}
+
+
+def in_city(city: str, title: str, text: str, local: bool = False) -> bool:
+    if city == "toronto":
+        return is_toronto(title, text, local)
+    c = CITIES[city]
+    blob, lead = f"{title}\n{text}", f"{title}\n{text[:400]}"
+    if c["own"].search(blob):
+        return True
+    if c["other"].search(blob) or c["elsewhere"].search(lead):
+        return False
+    return bool(c["name"].search(blob)) or (local and not WIRE_RE.search(text))
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--db", default=None)
     args = ap.parse_args()
     con = db.connect(args.db)
+    outlets = config.load()["outlets"]
     releases = []
     for r in con.execute(
         "SELECT id, title, published, text FROM police_releases WHERE is_collision=1"
@@ -262,7 +311,9 @@ def main() -> None:
             )
         ]
         title, text = a["title"] or "", a["text"] or ""
-        tor = is_toronto(title, text, local=a["outlet"] in LOCAL_OUTLETS)
+        city = outlets.get(a["outlet"], {}).get("city", "toronto")
+        # in the comparison databases, is_toronto means "in the outlet's city" (D-100)
+        tor = in_city(city, title, text, local=a["outlet"] in LOCAL_OUTLETS | CITY_LOCAL)
         crash_ok = is_crash_article(crash, title, text)
         rec = {
             "id": a["id"],

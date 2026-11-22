@@ -167,3 +167,23 @@ def test_national_outlet_section_and_place_elsewhere():
     assert is_toronto("Cyclist struck in North York - Toronto | Globalnews.ca", text)
     amqui = "Residents of Amqui, Que. gathered after the crash. Toronto"
     assert not is_toronto("How residents in Amqui, Que. are rallying | Globalnews.ca", amqui)
+
+
+def test_in_city_vancouver_and_montreal():
+    # D-100: own police wins; another force or municipality in the lead rules it out
+    from collect.crash import in_city
+
+    assert in_city("vancouver", "Cyclist hit", "Vancouver police say a cyclist was struck.")
+    assert not in_city("vancouver", "Cyclist hit", "Surrey RCMP say a cyclist was struck.")
+    assert not in_city("vancouver", "Pedestrian hit in North Vancouver", "A woman was struck.")
+    assert in_city("montreal", "Piéton happé", "Montreal police (SPVM) say a man was hit.")
+    assert not in_city("montreal", "Pedestrian hit in Laval", "A man was struck on Monday.")
+    assert in_city("toronto", "Cyclist hit", "Toronto police say a cyclist was struck.")
+
+
+def test_global_section_assigns_comparison_outlet():
+    from collect.compare import outlet_for
+
+    assert outlet_for("Cyclist hit - BC | Globalnews.ca") == "global_van"
+    assert outlet_for("Man struck - Montreal | Globalnews.ca") == "global_mtl"
+    assert outlet_for("Man struck - Toronto | Globalnews.ca") is None
