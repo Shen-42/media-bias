@@ -36,6 +36,79 @@ domain = "www.cbc.ca"
 path_prefix = "/news/canada/toronto/"
 crawl_delay_s = 2.0
 
+# Comparison outlets (PLAN.md nice-to-haves, D-99). Stored in data/compare.sqlite, never in
+# the main corpus. group = "urbanist": Toronto cycling or urbanist outlets.
+[outlets.spacing]
+name = "Spacing Toronto"
+domain = "spacing.ca"
+crawl_delay_s = 2.0
+group = "urbanist"
+
+[outlets.thelocal]
+name = "The Local"
+domain = "thelocal.to"
+crawl_delay_s = 2.0
+group = "urbanist"
+
+[outlets.cyclingmag]
+name = "Canadian Cycling Magazine"
+domain = "cyclingmagazine.ca"
+crawl_delay_s = 2.0
+group = "urbanist"
+
+# Comparison cities (D-100): the same three brands in Vancouver and Montreal. group = "city".
+[outlets.citynews_van]
+name = "CityNews Vancouver"
+domain = "vancouver.citynews.ca"
+crawl_delay_s = 10.0
+group = "city"
+city = "vancouver"
+
+[outlets.citynews_mtl]
+name = "CityNews Montreal"
+domain = "montreal.citynews.ca"
+crawl_delay_s = 10.0
+group = "city"
+city = "montreal"
+
+[outlets.ctv_van]
+name = "CTV News Vancouver"
+domain = "www.ctvnews.ca"
+crawl_delay_s = 2.0
+group = "city"
+city = "vancouver"
+
+[outlets.ctv_mtl]
+name = "CTV News Montreal"
+domain = "www.ctvnews.ca"
+crawl_delay_s = 2.0
+group = "city"
+city = "montreal"
+
+[outlets.global_van]
+name = "Global News BC"
+domain = "globalnews.ca"
+crawl_delay_s = 2.0
+group = "city"
+city = "vancouver"
+
+[outlets.global_mtl]
+name = "Global News Montreal"
+domain = "globalnews.ca"
+crawl_delay_s = 2.0
+group = "city"
+city = "montreal"
+
+# French Montreal outlet (D-101). Robots allow it; history comes from the Wayback CDX index,
+# pages are fetched from the live site.
+[outlets.radiocanada]
+name = "Radio-Canada (Grand Montréal)"
+domain = "ici.radio-canada.ca"
+crawl_delay_s = 2.0
+group = "city"
+city = "montreal"
+language = "fr"
+
 [police]
 wayback_prefix = "tps.ca/media-centre/news-releases/"
 wayback_delay_s = 2.0
@@ -45,6 +118,10 @@ parser = "en_core_web_trf"
 parser_version = "3.8.0"
 fast = "en_core_web_sm"
 fast_version = "3.8.0"
+# French outlets (D-101)
+parser_fr = "fr_dep_news_trf"
+fast_fr = "fr_core_news_sm"
+fr_version = "3.8.0"
 
 [models.coref]
 name = "biu-nlp/f-coref"

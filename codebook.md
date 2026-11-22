@@ -385,6 +385,30 @@ Complaints about service quality alone are `none` here; they usually carry the `
 `loaded_language` is the score of `mediabiasgroup/da-roberta-babe-ft` on each sentence. It is reported as a descriptive feature next to the stance results, never as a stance label or labeling function. It was trained on US political news and does not measure stance on bike lanes or transit.
 
 
+## 10. Comparison corpora (nice-to-haves, D-99 to D-101)
+
+The comparison corpora use the v1 crash labels in §2 unchanged. They live in their own databases and never enter the Toronto results.
+
+- **Urbanist outlets** (Spacing Toronto, The Local, Canadian Cycling Magazine): same Toronto filter and labels as v1.
+- **Comparison cities** (Vancouver, Montreal): `is_toronto` is read as "in the outlet's city". The city filter follows the Toronto one: the city's own police (VPD; SPVM) wins, another force (RCMP, Sûreté du Québec, a suburban police service) or another municipality in the lead rules the article out.
+- **No police matching outside Toronto.** No release archive was collected for other cities, so `text_source` there is `quoted` or `newsroom` only. City comparisons use **non-quoted text** (newsroom plus police-matched for Toronto), reported as its own measure and never as the v1 newsroom rate.
+
+### 10.1 French (Radio-Canada, Montreal)
+
+Same five grammatical labels and values. The rules (`nlp/rules_fr.py`) read Universal Dependencies parses.
+
+| Label | French cues | Positive | Negative |
+|---|---|---|---|
+| crash sentence | impact verb (happer, heurter, frapper, percuter, renverser, faucher, écraser, emboutir, coincer, traîner, accrocher), "entrer en collision", or a collision noun (collision, accident, accrochage, carambolage, délit de fuite) plus a road user | "Un piéton a été happé par une voiture." | "La rue est fermée pour l'enquête." / "Le conducteur a été accusé de délit de fuite." (charge name) |
+| `voice` = `agentless_passive` | être + participle, or se faire + infinitive, no "par" agent | "Une cycliste a été heurtée jeudi." / "Une cycliste s'est fait frapper." | "Un camion a percuté un cycliste." (`active`) |
+| `voice` = `passive_with_agent` | passive + "par" agent (`obl:agent`) | "Un piéton a été happé par une voiture." | "Une cycliste a été heurtée." |
+| `voice` = `intransitive` | "entrer en collision avec", or an impact verb with no struck road user | "Le cycliste est entré en collision avec une voiture." | |
+| `voice` = `nominal` | collision noun, no impact verb | "Collision mortelle entre un piéton et un autobus" | |
+| `driver_reference` | conducteur, conductrice, automobiliste, chauffeur, camionneur, chauffard → `person`; voiture, véhicule, camion, autobus, VUS … → `vehicle` | "Un conducteur a happé une piétonne." (`person`) | "Un camion a percuté un cycliste." (`vehicle`) |
+| `accident_term` | the noun "accident" | "Un accident impliquant une cycliste…" | "…accusé d'avoir quitté les lieux d'un accident" (charge name) |
+
+"Accident" is the usual word for a road crash in Quebec French, including in police communications, so `accident_term` rates are not comparable across languages and are reported for French without a cross-language comparison.
+
 ## Change log
 
 - v1.1 (2026-11-21): settled five gaps the eval annotators found: general statements, charge names, emergency vehicles, separate car-only collisions, and bare person nouns (D-69). Test and dev crash labels were redone under v1.1.
@@ -393,3 +417,4 @@ Complaints about service quality alone are `none` here; they usually carry the `
 - v1.0 (2026-11-19): resolved all draft flags (D-01 to D-17); added "accident" as a collision noun, the `vru_sentence` unit, `thematic_cue`, `attributed`, `driver_hta_charge`; extended the impact verb list.
 - v1.5 draft (2026-11-20): added Part B (sections 7–9): `topic`, `source_role` (with `agency_staff`, D-63), `policy_frame`, `stance_infrastructure`, `stance_cyclists`, `stance_transit`, and the `loaded_language` feature. Part A unchanged.
 - v1.5 draft, revised 2026-11-22: stance (9.2) now counts a position attributed to a source, not only the sentence's own claim; attributed newsroom sentences are reported as their own text source (D-81). Earlier v1.5 stance labels were made under the old rule. Same day: added the removal rule to 9.2 (D-83). Same day: added `stance_holder` to 9.2, labeled on the measurement sample, because the attributed-sentence detector misses many reported positions (D-87). Same day: spelled out `attributed` (section 3) to include reported positions and position-stating actions (D-91).
+- v1.6 (2026-11-22): §10 comparison corpora (urbanist outlets, Vancouver and Montreal, French Radio-Canada). No v1 label changed; French cues and the non-quoted comparison measure added (D-99 to D-101).

@@ -10,7 +10,7 @@ import re
 import spacy
 
 from common import config, db
-from nlp import quotes, rules
+from nlp import quotes, rules, rules_fr
 from nlp.lexicons import VRU_CONTEXT
 
 CANDIDATE_RE = re.compile(
@@ -25,8 +25,13 @@ VRU_RE = re.compile(r"\b(?:pedestrian|cyclist|bicyclist|e-?biker|scooter rider|j
 RULE_LABELS = ("voice", "driver_reference", "focus", "vru_as_actor", "accident_term")
 
 
-def load_models():
+VRU_RE_FR = re.compile(r"\b(?:piétonne?|cycliste|trottinette)s?\b", re.I)
+
+
+def load_models(lang: str = "en"):
     cfg = config.load()["models"]["spacy"]
+    if lang == "fr":  # D-101
+        return spacy.load(cfg["fast_fr"]), spacy.load(cfg["parser_fr"])
     return spacy.load(cfg["fast"]), spacy.load(cfg["parser"])
 
 
@@ -73,12 +78,17 @@ def split(nlp_sm, title: str | None, text: str | None) -> list[dict]:
     return out
 
 
-def process_article(con, nlp_sm, nlp_trf, art) -> int:
+def process_article(con, nlp_sm, nlp_trf, art, lang: str = "en") -> int:
+    R, cand_re, vru_re = (
+        (rules_fr, rules_fr.CANDIDATE_RE, VRU_RE_FR)
+        if lang == "fr"
+        else (rules, CANDIDATE_RE, VRU_RE)
+    )
     body = clean_body(art["title"], art["text"])
     sents = split(nlp_sm, art["title"], body)
     body_spans = quotes.quote_spans(body)
     title_spans = quotes.quote_spans(art["title"] or "")
-    cand = [s for s in sents if CANDIDATE_RE.search(s["text"])]
+    cand = [s for s in sents if cand_re.search(s["text"])]
     parsed = {id(s): d for s, d in zip(cand, nlp_trf.pipe([s["text"] for s in cand]), strict=True)}
     for s in sents:
         sid = f"{art['id']}:{'h' if s['part'] == 'headline' else 'b'}:{s['idx']}"
@@ -88,19 +98,19 @@ def process_article(con, nlp_sm, nlp_trf, art) -> int:
         doc = parsed.get(id(s))
         if doc is not None:
             sent = doc[:]
-            is_crash, why = rules.is_crash_sentence(sent)
+            is_crash, why = R.is_crash_sentence(sent)
             if is_crash:
-                imp = rules.find_impact(sent)
+                imp = R.find_impact(sent)
                 if imp.verb is not None:
                     a, b = imp.tokens[0].idx, imp.tokens[-1].idx + len(imp.tokens[-1])
                     impact_range = (start + a, start + b)
-                for name, (val, ev) in rules.label_crash_sentence(sent).items():
+                for name, (val, ev) in R.label_crash_sentence(sent).items():
                     con.execute(
                         "INSERT OR REPLACE INTO labels VALUES (?,?,?,?,?,?)",
                         (sid, name, "rule", str(val).lower(), None, ev),
                     )
         quoted = quotes.is_quoted(start, end, spans, impact_range)
-        is_vru = bool(VRU_RE.search(s["text"]) or (is_crash and VRU_CONTEXT.search(s["text"])))
+        is_vru = bool(vru_re.search(s["text"]) or (is_crash and VRU_CONTEXT.search(s["text"])))
         con.execute(
             "INSERT OR REPLACE INTO sentences (id, article_id, part, idx, text, is_crash, is_vru,"
             " quoted, attributed) VALUES (?,?,?,?,?,?,?,?,?)",
@@ -130,16 +140,23 @@ def main() -> None:
         con.execute("DELETE FROM labels")
         con.execute("DELETE FROM sentences")
         con.commit()
-    nlp_sm, nlp_trf = load_models()
     arts = con.execute(
         "SELECT a.* FROM articles a WHERE NOT EXISTS"
         " (SELECT 1 FROM sentences s WHERE s.article_id = a.id) ORDER BY published"
     ).fetchall()[: args.limit]
-    for n, art in enumerate(arts):
-        process_article(con, nlp_sm, nlp_trf, art)
-        con.commit()
-        if n % 100 == 0:
-            print(f"sentences {n}/{len(arts)}", flush=True)
+    outlets = config.load()["outlets"]
+    # one language's models in memory at a time (8 GB machine)
+    for lang in ("en", "fr"):
+        todo = [a for a in arts if outlets.get(a["outlet"], {}).get("language", "en") == lang]
+        if not todo:
+            continue
+        nlp_sm, nlp_trf = load_models(lang)
+        for n, art in enumerate(todo):
+            process_article(con, nlp_sm, nlp_trf, art, lang)
+            con.commit()
+            if n % 100 == 0:
+                print(f"sentences {lang} {n}/{len(todo)}", flush=True)
+        del nlp_sm, nlp_trf
     print(f"sentences done: {len(arts)} articles", flush=True)
 
 
