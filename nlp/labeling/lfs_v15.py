@@ -156,7 +156,20 @@ def _cues(target: re.Pattern, pos: re.Pattern, neg: re.Pattern, pv: str, nv: str
     return lf
 
 
+def _no_cue(target: re.Pattern):
+    """Target named but no evaluative word: none (codebook 9.2 needs an evaluation; D-83)."""
+
+    def lf(x):
+        t = x["text"]
+        if not target.search(t) or SUPPORT_RE.search(t) or OPPOSE_RE.search(t):
+            return ABSTAIN
+        return "none"
+
+    return lf
+
+
 lf_infra_no_target = _no_target(INFRA_TARGET)
+lf_infra_no_cue = _no_cue(INFRA_TARGET)
 lf_infra_cues = _cues(INFRA_TARGET, SUPPORT_RE, OPPOSE_RE, "support", "oppose")
 
 
@@ -181,6 +194,7 @@ def lf_cyclists_qwen(x):
 
 
 lf_transit_no_target = _no_target(TRANSIT_TARGET)
+lf_transit_no_cue = _no_cue(TRANSIT_TARGET)
 lf_transit_cues = _cues(TRANSIT_TARGET, SUPPORT_RE, OPPOSE_RE, "support", "oppose")
 
 
@@ -192,11 +206,14 @@ def lf_transit_qwen(x):
     return _qwen(x)
 
 
+# The support/oppose cue LFs are scored as the lexicon baseline but are not Snorkel inputs:
+# on dev they were right on 17% (infrastructure) and 25% (transit) of their votes, mostly
+# by misreading "oppose the removal" (D-83). The cyclist cues keep their place.
 LFS = {
     "policy_frame": [lf_frame_lexicon, lf_frame_schedule_none, lf_frame_nli, lf_frame_qwen],
     "stance_infrastructure": [
         lf_infra_no_target,
-        lf_infra_cues,
+        lf_infra_no_cue,
         lf_infra_nli,
         lf_infra_qwen,
     ],
@@ -208,7 +225,7 @@ LFS = {
     ],
     "stance_transit": [
         lf_transit_no_target,
-        lf_transit_cues,
+        lf_transit_no_cue,
         lf_transit_nli,
         lf_transit_qwen,
     ],

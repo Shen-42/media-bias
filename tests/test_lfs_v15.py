@@ -77,3 +77,11 @@ def test_every_lf_returns_codebook_value_or_abstain():
         for fn in fns:
             for item in s:
                 assert fn(item) in L.V15_LABELS[label] + [None]
+
+
+def test_no_cue_means_none():
+    assert L.lf_infra_no_cue(x("The bike lanes on Bloor opened in 2023.")) == "none"
+    assert L.lf_infra_no_cue(x("The bike lanes have been a disaster for local shops.")) is None
+    assert L.lf_infra_no_cue(x("Council will vote Thursday.")) is None  # no target
+    assert L.lf_transit_no_cue(x("The subway line opens in 2031.")) == "none"
+    assert L.lf_transit_no_cue(x("The subway is a waste of money.")) is None

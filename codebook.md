@@ -349,6 +349,7 @@ Each stance label names one target. A sentence gets a value for every target; mo
 - Plans, actions, votes, schedules and facts with no stated evaluation are `none` ("The province plans to remove the lanes"; "Council voted 15–10 on the motion").
 - Whose stance it is comes from where the sentence sits, not from the label: quoted text (`text_source` = `quoted`), attributed newsroom text (a newsroom sentence that names its source), and the outlet's own unattributed text are reported separately. An attributed stance is the source's position, never the outlet's.
 - Report the position as stated. Do not judge whether the source is right.
+- Removal and cancellation: opposing the removal, cancellation or restriction of a target is support for it ("Advocates rallied against the removal of the Bloor lanes" is `support`); calling for removal is `oppose`. A government plan or action to remove a target, with no stated evaluation, is `none` ("The province is removing the lanes on Yonge Street").
 
 #### 9.2.1 `stance_infrastructure` (`support` | `oppose` | `none`): toward cycling infrastructure
 
@@ -390,4 +391,4 @@ Complaints about service quality alone are `none` here; they usually carry the `
 - v1.0 (2026-11-19): "hit-and-run" added as a collision noun (D-31).
 - v1.0 (2026-11-19): resolved all draft flags (D-01 to D-17); added "accident" as a collision noun, the `vru_sentence` unit, `thematic_cue`, `attributed`, `driver_hta_charge`; extended the impact verb list.
 - v1.5 draft (2026-11-20): added Part B (sections 7–9): `topic`, `source_role` (with `agency_staff`, D-63), `policy_frame`, `stance_infrastructure`, `stance_cyclists`, `stance_transit`, and the `loaded_language` feature. Part A unchanged.
-- v1.5 draft, revised 2026-11-22: stance (9.2) now counts a position attributed to a source, not only the sentence's own claim; attributed newsroom sentences are reported as their own text source (D-81). Earlier v1.5 stance labels were made under the old rule.
+- v1.5 draft, revised 2026-11-22: stance (9.2) now counts a position attributed to a source, not only the sentence's own claim; attributed newsroom sentences are reported as their own text source (D-81). Earlier v1.5 stance labels were made under the old rule. Same day: added the removal rule to 9.2 (D-83).

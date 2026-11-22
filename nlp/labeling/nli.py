@@ -60,8 +60,16 @@ HYPOTHESES: dict[str, list[tuple[str, str]]] = {
         ("none", "This sentence states a time, place, or event with no policy content."),
     ],
     "stance_infrastructure": [
-        ("support", "This sentence says bike lanes are good, or that someone supports them."),
-        ("oppose", "This sentence says bike lanes are bad, or that someone opposes them."),
+        (
+            "support",
+            "This sentence says bike lanes are good, or that someone supports them or opposes "
+            "removing them.",
+        ),
+        (
+            "oppose",
+            "This sentence says bike lanes are bad, or that someone opposes them or wants them "
+            "removed.",
+        ),
         ("none", "This sentence states no one's view of bike lanes."),
     ],
     "stance_cyclists": [
