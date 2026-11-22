@@ -391,6 +391,8 @@ The comparison corpora use the v1 crash labels in §2 unchanged. They live in th
 
 - **Urbanist outlets** (Spacing Toronto, The Local, Canadian Cycling Magazine): same Toronto filter and labels as v1.
 - **Comparison cities** (Vancouver, Montreal): `is_toronto` is read as "in the outlet's city". The city filter follows the Toronto one: the city's own police (VPD; SPVM) wins, another force (RCMP, Sûreté du Québec, a suburban police service) or another municipality in the lead rules the article out.
+- **City proper.** As for Toronto, the city means the municipality: Burnaby, Surrey, North and West Vancouver, Laval, Longueuil and the other suburbs are out. Vancouver Island is not Vancouver.
+- **Crash reports only.** Comparison rates use initial reports whose headline is itself a crash sentence, in every group including Toronto. This keeps opinion and policy pieces that mention a crash out of the comparison.
 - **No police matching outside Toronto.** No release archive was collected for other cities, so `text_source` there is `quoted` or `newsroom` only. City comparisons use **non-quoted text** (newsroom plus police-matched for Toronto), reported as its own measure and never as the v1 newsroom rate.
 
 ### 10.1 French (Radio-Canada, Montreal)
