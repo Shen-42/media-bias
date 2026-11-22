@@ -46,6 +46,16 @@ streamlit run app/streamlit_app.py      # MEDIA_BIAS_MODE=local adds the full-te
 pytest && ruff check .
 ```
 
+## Browser extension (local only)
+
+The extension in `extension/` lists the crash sentences on the page you are reading, with each rule label and its evidence (hover a label), and marks quoted sentences. Non-quoted English sentences also get suggestions after the Road Collision Reporting Guidelines, marked as suggestions. There is no article score or grade.
+
+1. Start the scoring server: `python -m app.score_server` (listens on 127.0.0.1:8765 only; page text is scored in memory and not saved).
+2. In Chrome, open `chrome://extensions`, turn on Developer mode, choose "Load unpacked" and pick the `extension/` folder.
+3. Open a news article and click the extension's button.
+
+The server answers only requests from browser-extension origins. French pages (`<html lang="fr">`) use the French rules.
+
 ## Data and copyright
 
 Article text and HTML stay in `data/` and are never committed. The repo publishes code, labels keyed by sentence ID, aggregate tables, and at most one short excerpt per article for examples. The public dashboard mode shows only those; the full-text viewer runs locally.
