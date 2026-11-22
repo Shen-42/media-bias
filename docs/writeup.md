@@ -141,6 +141,26 @@ The local article viewer and `python -m nlp.rewrite --article <id>` offer sugges
 
 The rewrite rules were tuned on the dev crash sentences and a second sample of 40. On a third sample of 40 rewrites from unseen non-quoted corpus sentences, 38 read as grammatical and kept the meaning; the two failures left a "before coming to rest" clause attached to the driver. That judgment came from Claude Code, not a human reader. Rewrites assume a driver, which fits nearly every pedestrian or cyclist crash in this corpus but should be checked against the facts before use.
 
+## Comparison corpora
+
+Three comparisons from the plan's nice-to-haves sit outside the main results, in their own databases (codebook §10, D-99 to D-101). All rates are rule labels on non-quoted body sentences of initial reports whose headline is a crash sentence, with 95% article-cluster bootstrap intervals. Police matching exists only for Toronto, so this measure pools newsroom and police-matched text and is not the v1 newsroom rate. The rules were tuned on Toronto English text and not retuned for the other corpora.
+
+Share of crash sentences with no driver named (`driver_reference` is `vehicle` or `absent`):
+
+| Group | Driver not named | Vehicle named instead | Nominal voice | Articles |
+|---|---|---|---|---|
+| Toronto mainstream (CityNews, CTV, Global) | 88% (86–90) | 60% (58–63) | 22% (20–24) | 751 |
+| Canadian Cycling Magazine (Toronto) | 59% (44–72) | 18% (0–32) | 44% (29–57) | 13 |
+| Vancouver (English) | 76% (71–81) | 38% (31–44) | 35% (28–41) | 103 |
+| Montreal (English) | 85% (81–88) | 58% (53–62) | 32% (27–36) | 192 |
+| Montreal (French, Radio-Canada) | 78% (68–86) | 51% (38–63) | 38% (25–53) | 31 |
+
+**Cycling and urbanist outlets.** Canadian Cycling Magazine's Toronto crash reports named the driver more often than the mainstream outlets did: the driver was absent from 59% of its crash sentences against 88%. That rests on 13 articles. Spacing and The Local ran no crash reports in the window; their crash mentions were in opinion and policy pieces. On bike lanes, the urbanist outlets stated positions in their own voice where the mainstream outlets did not. Among annotated sentences naming bike infrastructure, 46% (30–63) of Spacing's and 6% (4–10) of Cycling Magazine's carry the outlet's own position, against 1% (0–1) for the Toronto mainstream outlets (D-85, D-87). Opposition to bike lanes appeared at a similar rate in Cycling Magazine (19%, 14–25) and the mainstream outlets (18%, 15–22). The urbanist sentences were labeled by annotator subagents with no second annotator; Cycling Magazine's 1,156 sentences were sampled down to 300.
+
+**Comparison cities.** Vancouver coverage named the driver more often than Toronto coverage (driver absent in 76% against 88%; intervals do not overlap) and used the vehicle as the striker less (38% against 60%). Montreal English coverage was close to Toronto's. In all three other groups, more crash sentences were nominal ("a collision involving a pedestrian") than in Toronto. These are differences in what the rules measure; they were not checked by hand in the other cities.
+
+**French.** Radio-Canada was the only French outlet that could be collected (La Presse blocks scripted access; see `docs/sources.md`). The French rules were scored on 80 annotated test sentences: crash detection precision 0.72 (0.60–0.82) and recall 0.95 (0.85–0.99); on sentences both the rules and the annotator call crash sentences, voice agreed on 0.95, driver reference 0.90 and focus 0.74 (n = 42). A second annotator agreed on all 30 shared sentences, but both are LLM annotators working from one codebook, which is a weak check. "Accident" is the standard Quebec French word for a road crash, so its rate is not compared across languages.
+
 ## Addendum: bike lane and transit coverage (v1.5)
 
 Positions on bike lanes and transit in Toronto news almost always belong to sources, not to the outlets. Of 511 annotated sentences that state a position, 7 state it as the outlet's own claim (1.4%). Among all 955 body sentences that name bike infrastructure, 0.5% carry the outlet's own position (CityNews 5 of 450, CTV 0 of 212, Global 0 of 293). Positions from sources are common: 68% (61–76) of quoted sentences that name bike infrastructure take one, 52% (46–58) of attributed sentences and 28% (23–33) of other newsroom sentences, split between support and oppose about 3 to 2. Transit positions are rarer and almost all support: 26% (17–35) of quoted transit sentences, 6% (3–10) of attributed and 4% (2–7) of other newsroom sentences. All of these rates come from annotated sentences (D-85), not from a model. No model stance passed validation (D-88).

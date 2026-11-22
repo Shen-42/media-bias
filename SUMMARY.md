@@ -67,3 +67,12 @@ Positions on bike lanes and transit in Toronto news almost always belong to sour
 - Frames (annotated, D-90): bike-lane newsroom sentences are framed mostly as law (39%) and politics (26%); quotes frame them by safety (20%) and quality of life (21%). Legal framing rose from 19–33% before the law to 47–64% while it was in force and in court. Outlets do not differ.
 - Components on test: topic precision bike lane 0.97 (n = 29), transit 0.82 (n = 45); attribution precision 0.93, recall 0.73 (n = 150); source-role accuracy 0.60 (n = 53).
 - Models: no stance model passed validation. A SetFit transit model retrained on the real class mix (D-86) matched annotated rates overall and per outlet but missed the newsroom rate (1.6% against 2.1–8.0%), failing a pass rule set before scoring (D-88). Snorkel overstates stance. Frames are reported from annotations too; the best frame model reached macro-F1 0.51.
+
+# Summary: comparison corpora (nice-to-haves)
+
+Rule labels on non-quoted body sentences of initial crash reports (codebook §10). Full tables: `analysis/tables/compare_*.csv`; write-up section "Comparison corpora".
+
+- Driver not named in crash sentences: Toronto mainstream 88% (86–90), Vancouver 76% (71–81), Montreal English 85% (81–88), Montreal French 78% (68–86), Canadian Cycling Magazine 59% (44–72, 13 articles).
+- Outlet's own position in sentences naming bike infrastructure (annotated): Spacing 46% (30–63), Cycling Magazine 6% (4–10), Toronto mainstream 1% (0–1).
+- French rules on 80 annotated test sentences: crash precision 0.72, recall 0.95; voice 0.95, focus 0.74 on agreed crash sentences.
+- Also built: rule-based rewrite suggestions (38/40 acceptable on a held-out sample) and a local browser extension (not tested in a browser).
