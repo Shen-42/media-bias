@@ -326,6 +326,12 @@ if MODE == "local":
             con,
             params=(f"{pick}:%",),
         )
+        show_rw = st.checkbox("Show suggested rewrites (Road Collision Reporting Guidelines)")
+        if show_rw:
+            from nlp import rewrite
+            from nlp.sentences import load_models
+
+            parser = st.cache_resource(lambda: load_models()[1])()
         for _, s in sents.iterrows():
             own = labs[labs["sentence_id"] == s["id"]]
             flagged = s["is_crash"] or (own["value"] == "true").any()
@@ -333,3 +339,10 @@ if MODE == "local":
             if flagged:
                 st.caption(f"text_source={s['text_source']} release_sim={s['release_sim']}")
                 st.dataframe(own[["label", "value", "evidence"]], hide_index=True)
+            if show_rw and s["is_crash"] and s["text_source"] != "quoted":
+                conduct = ((own["label"] == "vru_conduct_detail") & (own["value"] == "true")).any()
+                for sg in rewrite.suggest(next(parser(s["text"]).sents), conduct):
+                    st.info(
+                        f"Suggestion, not a measured result. {sg['point']}: {sg['note']}"
+                        + (f"\n\nSuggested: {sg['rewrite']}" if sg["rewrite"] else "")
+                    )

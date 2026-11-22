@@ -70,6 +70,8 @@ Done:
 
 - KSI link done (D-95): 26% of pedestrian/cyclist KSI crashes covered; road_users 98%, severity 90% agreement. BABE test split done (D-96): macro-F1 0.82 (upper bound). Media Frames Corpus check skipped (D-97: needs LexisNexis account).
 
+- Nice-to-haves started 2026-11-22 at the author's request (D-98 onward). Suggested rewrites done (`nlp/rewrite.py`, viewer checkbox): 38/40 acceptable on a held-out sample.
+
 Next (author's order, 2026-11-22): human-labeled sample of this corpus by the author (stance, crash grammar); old list: then quality checks (source roles, transit topic precision, attribution detector recall, human-labeled sample).
 
 ## Blockers
