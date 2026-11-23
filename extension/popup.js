@@ -47,9 +47,11 @@ function render(sentences) {
 
 document.getElementById("go").addEventListener("click", async () => {
   out.replaceChildren(el("p", { class: "muted" }, "Labeling…"));
+  let atServer = false;
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     const [{ result }] = await chrome.scripting.executeScript({ target: { tabId: tab.id }, func: pageText });
+    atServer = true;
     const r = await fetch(SERVER, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -58,6 +60,7 @@ document.getElementById("go").addEventListener("click", async () => {
     if (!r.ok) throw new Error(`server returned ${r.status}`);
     render((await r.json()).sentences);
   } catch (e) {
-    out.replaceChildren(el("p", { class: "muted" }, `Could not label the page (${e.message}). Is the scoring server running?`));
+    const hint = atServer ? " Is the scoring server running?" : "";
+    out.replaceChildren(el("p", { class: "muted" }, `Could not label the page (${e.message}).${hint}`));
   }
 });
