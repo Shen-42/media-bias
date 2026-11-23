@@ -75,4 +75,4 @@ Rule labels on non-quoted body sentences of initial crash reports (codebook §10
 - Driver not named in crash sentences: Toronto mainstream 88% (86–90), Vancouver 76% (71–81), Montreal English 85% (81–88), Montreal French 78% (68–86), Canadian Cycling Magazine 59% (44–72, 13 articles).
 - Outlet's own position in sentences naming bike infrastructure (annotated): Spacing 46% (30–63), Cycling Magazine 6% (4–10), Toronto mainstream 1% (0–1).
 - French rules on 80 annotated test sentences: crash precision 0.72, recall 0.95; voice 0.95, focus 0.74 on agreed crash sentences.
-- Also built: rule-based rewrite suggestions (38/40 acceptable on a held-out sample) and a local browser extension (not tested in a browser).
+- Also built: rule-based rewrite suggestions (38/40 acceptable on a held-out sample) and a local browser extension (popup tested in Chromium; the toolbar-click permission step was simulated).
