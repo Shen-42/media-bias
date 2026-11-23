@@ -1,0 +1,41 @@
+name: Pages
+
+# Publishes site/ to GitHub Pages. site/build.py uses only the standard library and
+# reads the committed tables in analysis/tables and eval/reports.
+on:
+  push:
+    branches: [main]
+    paths: ["site/**", "analysis/tables/**", "eval/reports/**", ".github/workflows/pages.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Build
+        run: |
+          python site/build.py
+          mkdir _site
+          cp site/index.html site/style.css site/popup.png _site/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -45,6 +45,10 @@ extend-exclude = ["data"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
 
+[tool.ruff.lint.per-file-ignores]
+# The page template is HTML prose in an f-string.
+"site/build.py" = ["E501"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [

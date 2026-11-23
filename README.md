@@ -2,7 +2,7 @@
 
 This project measures how Toronto local news frames traffic crashes involving pedestrians and cyclists, and reports the results by outlet and over time. The first version asks one question: how often do Toronto outlets describe crashes in ways that hide the driver, and how much of that language comes from Toronto Police news releases rather than the newsroom? The tool measures framing. It does not start from a conclusion about any outlet or government.
 
-Results and limitations are in [`docs/writeup.md`](docs/writeup.md). Labels are defined in [`codebook.md`](codebook.md). Judgment calls are logged in [`DECISIONS.md`](DECISIONS.md).
+Results and limitations are in [`docs/writeup.md`](docs/writeup.md). A plain-language summary with charts and the extension's install steps is in [`site/`](site/), built by `python site/build.py` and published to GitHub Pages by `.github/workflows/pages.yml`. Labels are defined in [`codebook.md`](codebook.md). Judgment calls are logged in [`DECISIONS.md`](DECISIONS.md).
 
 ## Important: how the test labels were made
 

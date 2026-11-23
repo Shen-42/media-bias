@@ -74,6 +74,8 @@ Done:
 
 - Nice-to-haves done (2026-11-23): browser extension (`extension/`, `app/score_server.py`, D-102; popup tested in Chromium via Playwright, 2026-11-23, toolbar click simulated); urbanist comparison (`data/compare.sqlite`, D-99); comparison cities (`data/cities.sqlite`, D-100); French Radio-Canada rules and eval (`nlp/rules_fr.py`, `eval/*_crash_fr.csv`, D-101). Tables `analysis/tables/compare_*.csv` from `python -m analysis.compare`. Write-up section "Comparison corpora". KSI comparison was D-95.
 
+- Project site (2026-11-23): `site/` built by `python site/build.py` from the tables; GitHub Pages workflow `.github/workflows/pages.yml`; design brief `docs/site-design.md`. Design review found a false outlet claim in the write-up and summary, corrected (D-103). Not yet published: the repo is private.
+
 Next (author's order, 2026-11-22): human-labeled sample of this corpus by the author (stance, crash grammar); old list: then quality checks (source roles, transit topic precision, attribution detector recall, human-labeled sample).
 
 ## Blockers
